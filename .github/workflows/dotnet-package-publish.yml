@@ -1,0 +1,27 @@
+name: NuGet Package Generation 
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+
+  deploy:
+    runs-on: ubuntu-latest
+    name: Update or Create NuGet package
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '8.x'
+
+      - name: Install dependencies
+        run: dotnet restore RKSoftware.Packages.ModelTransformer
+
+      - name: Build
+        run: dotnet build RKSoftware.Packages.ModelTransformer --configuration Release --no-restore -warnaserror
+
+      - name: Push to NuGet repository
+        run: dotnet nuget push ./RKSoftware.Packages.ModelTransformer/bin/Release/*.nupkg --api-key ${{secrets.NUGET_API_KEY}} --source https://api.nuget.org/v3/index.json
