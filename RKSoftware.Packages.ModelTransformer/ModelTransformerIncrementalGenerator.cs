@@ -5,9 +5,23 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace RKSoftware.Packages.ModelTransformer;
 
+/// <summary>
+/// Source generator that processes classes with the [ModelTransformerRegistrationAttribute] attribute.
+/// </summary>
 [Generator]
 public class ModelTransformerIncrementalGenerator : IIncrementalGenerator
 {
+    /// <summary>
+    /// Initializes the incremental generator by configuring the syntax and semantic processing pipeline.
+    /// </summary>
+    /// <remarks>This method sets up the generator to process syntax nodes and semantic models, identify
+    /// target classes  for code generation, and produce source code based on the identified targets. It registers:
+    /// <list type="bullet"> <item> <description>A post-initialization action to add a marker attribute to the
+    /// compilation.</description> </item> <item> <description>A syntax provider to filter and transform syntax nodes
+    /// into models for code generation.</description> </item> <item> <description>A source output action to generate
+    /// source code for each identified model.</description> </item> </list></remarks>
+    /// <param name="context">The <see cref="IncrementalGeneratorInitializationContext"/> used to register syntax providers, 
+    /// post-initialization actions, and source outputs for the generator.</param>
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         // Add the marker attribute to the compilation

@@ -2,7 +2,7 @@
 
 namespace RKSoftware.Packages.ModelTransformer;
 
-internal class ModelTransformerRegistrationModel(INamedTypeSymbol host)
+internal sealed class ModelTransformerRegistrationModel(INamedTypeSymbol host)
 {
     private readonly INamedTypeSymbol _host = host ?? throw new ArgumentNullException(nameof(host));
 
