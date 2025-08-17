@@ -51,7 +51,7 @@ public class ModelTransformerIncrementalGenerator : IIncrementalGenerator
 
         if (host != null)
         {
-            var attributes = new List<INamedTypeSymbol>();
+            var refistrationModel = new ModelTransformerRegistrationModel(host);
 
             // loop through all the attributes on the method
             foreach (var attributeListSyntax in hostClass.AttributeLists)
@@ -70,7 +70,7 @@ public class ModelTransformerIncrementalGenerator : IIncrementalGenerator
                     // Is the attribute the [TransformerRegistrationAttribute<T1, T2>] attribute?
                     if ("SourceGeneratorExperiments.Transformers.TransformerRegistrationAttribute<T1, T2>".Equals(name, StringComparison.Ordinal))
                     {
-                        attributes.Add(attributeTypeSymbol);
+                        refistrationModel.Attributes.Add(attributeTypeSymbol);
                     }
                 }
             }
