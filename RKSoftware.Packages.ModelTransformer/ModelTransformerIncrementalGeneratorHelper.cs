@@ -1,5 +1,4 @@
-﻿using System.Text;
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 
 namespace RKSoftware.Packages.ModelTransformer;
 
@@ -53,7 +52,6 @@ namespace {hostNamespace}
             {{
                 throw new System.ArgumentNullException(nameof(source));
             }}
-
 {variableCreationCode}
             var target = new {target.ToDisplayString()}
             {{
@@ -61,10 +59,8 @@ namespace {hostNamespace}
             }};
             return target;
         }}
-
 {methodsCode}
-    }}
-    
+    }}    
 }}";
         return str;
     }
@@ -88,17 +84,19 @@ namespace {hostNamespace}
                 var defaultMethodName = $"To{mapping.PropertyName}Default";
                 var methodName = $"To{mapping.PropertyName}";
 
-                mapping.VariableCreationCode.AppendLine($"          var {mapping.VariableName} = {defaultMethodName}(source);");
-                mapping.VariableCreationCode.AppendLine($"          {methodName}(source, ref {mapping.VariableName});");
+                mapping.VariableCreationCode.AppendLine(@$"
+            var {mapping.VariableName} = {defaultMethodName}(source);
+            {methodName}(source, ref {mapping.VariableName});");
 
-                mapping.VariableMappingCode.AppendLine($"               {mapping.PropertyName} =  {mapping.VariableName},");
+                mapping.VariableMappingCode.Append($@"
+                {mapping.PropertyName} = {mapping.VariableName},");
 
-                mapping.MethodCode.AppendLine($@"     private static {targetProp.Type.ToDisplayString()} {defaultMethodName}({source.ToDisplayString()} source)
+                mapping.MethodCode.AppendLine($@"
+        private static {targetProp.Type.ToDisplayString()} {defaultMethodName}({source.ToDisplayString()} source)
         {{
             return source.{sourceProp.Name};
-        }}");
-                mapping.MethodCode.AppendLine(
-$@"     static partial void {methodName}({source.ToDisplayString()} source, ref {targetProp.Type.ToDisplayString()} target);");
+        }}
+        static partial void {methodName}({source.ToDisplayString()} source, ref {targetProp.Type.ToDisplayString()} target);");
 
                 mappings.Add(mapping);
             }
