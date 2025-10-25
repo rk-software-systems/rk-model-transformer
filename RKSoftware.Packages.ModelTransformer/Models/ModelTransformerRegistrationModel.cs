@@ -15,7 +15,7 @@ internal sealed class ModelTransformerRegistrationModel(INamedTypeSymbol host)
     public List<INamedTypeSymbol> Attributes { get; } = [];
 #pragma warning restore CA1002 // Do not expose generic lists
 
-    public string Namespace
+    public string HostNamespace
     {
         get
         {

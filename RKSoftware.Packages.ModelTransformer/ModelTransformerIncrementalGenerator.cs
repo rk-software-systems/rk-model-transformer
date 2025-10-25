@@ -25,12 +25,15 @@ public class ModelTransformerIncrementalGenerator : IIncrementalGenerator
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         // Add the marker attribute to the compilation
-        context.RegisterPostInitializationOutput(ctx => ctx.AddSource("ModelTransformerRegistrationAttribute.g.cs", SourceText.From(ModelTransformerIncrementalGeneratorHelper.Attribute, Encoding.UTF8)));
+        context.RegisterPostInitializationOutput(ctx => ctx.AddSource(
+            $"{ModelTransformerIncrementalGeneratorHelper.AttributeName}.g.cs", 
+            SourceText.From(ModelTransformerIncrementalGeneratorHelper.Attribute, Encoding.UTF8))
+        );
 
         IncrementalValuesProvider<ModelTransformerRegistrationModel?> classesToGenerate = context.SyntaxProvider
             .CreateSyntaxProvider(
                 predicate: static (s, _) => IsSyntaxTargetForGeneration(s), // select classes with attributes
-                transform: static (ctx, _) => GetSemanticTargetForGeneration(ctx)) // select classes with the [Ordered] attribute and extract details
+                transform: static (ctx, _) => GetSemanticTargetForGeneration(ctx)) // select classes with the marker attribute and extract details
             .Where(static m => m != null); // Filter out errors that we don't care about
 
         // Generate source code for each class found
@@ -51,7 +54,7 @@ public class ModelTransformerIncrementalGenerator : IIncrementalGenerator
 
         if (host != null)
         {
-            var refistrationModel = new ModelTransformerRegistrationModel(host);
+            var registrationModel = new ModelTransformerRegistrationModel(host);
 
             // loop through all the attributes on the method
             foreach (var attributeListSyntax in hostClass.AttributeLists)
@@ -67,13 +70,15 @@ public class ModelTransformerIncrementalGenerator : IIncrementalGenerator
                     var attributeTypeSymbol = attributeSymbol.ContainingType;
                     var name = attributeTypeSymbol.OriginalDefinition.ToDisplayString();
 
-                    // Is the attribute the [TransformerRegistrationAttribute<T1, T2>] attribute?
-                    if ("SourceGeneratorExperiments.Transformers.TransformerRegistrationAttribute<T1, T2>".Equals(name, StringComparison.Ordinal))
+                    // Is the attribute the marker attribute?
+                    if ($"{ModelTransformerIncrementalGeneratorHelper.AttributeNamespace}.{ModelTransformerIncrementalGeneratorHelper.AttributeGenericName}".Equals(name, StringComparison.Ordinal))
                     {
-                        refistrationModel.Attributes.Add(attributeTypeSymbol);
+                        registrationModel.Attributes.Add(attributeTypeSymbol);
                     }
                 }
             }
+
+            return registrationModel.Attributes.Count > 0 ? registrationModel : null;
         }
 
         // we didn't find the attribute we were looking for
@@ -84,15 +89,19 @@ public class ModelTransformerIncrementalGenerator : IIncrementalGenerator
     {
         if (tr != null)
         {
-            // generate the source code and add it to the output
-            //var result = ModelTransformerIncrementalGeneratorHelper.GenerateExtensionClass(tr);
+            foreach (var attr in tr.Attributes)
+            {
+                // generate the source code and add it to the output
+                var result = ModelTransformerIncrementalGeneratorHelper.GenerateExtensionClass(tr.HostNamespace, attr);
 
-            // Create a separate partial class file for each class
-            //context.AddSource($"{tr.Host.Name}.g.cs", SourceText.From(result, Encoding.UTF8));
+                var fileName = $"{attr.TypeArguments.First().Name}Extensions.g.cs";
+                // Create a separate partial class file for each class
+                context.AddSource(fileName, SourceText.From(result, Encoding.UTF8));
+            }
         }
     }
 
-    static INamedTypeSymbol? GetHostClass(SemanticModel semanticModel, SyntaxNode classDeclarationSyntax)
+    private static INamedTypeSymbol? GetHostClass(SemanticModel semanticModel, SyntaxNode classDeclarationSyntax)
     {
         // Get the semantic representation of the class syntax
         if (semanticModel.GetDeclaredSymbol(classDeclarationSyntax) is not INamedTypeSymbol classSymbol)
