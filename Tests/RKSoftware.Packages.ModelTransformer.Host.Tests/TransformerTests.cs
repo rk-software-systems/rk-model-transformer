@@ -7,13 +7,13 @@ public class TransformerTests
     {
         var domain = new User
         {
-            Name = "John Doe",
-            Username = "johndoe"
+            StringOptional = "John Doe",
+            StringRequired = "johndoe"
         };
 
         var viewModel = domain.Transform();
 
-        Assert.Equal(domain.Name, viewModel.Name);
-        Assert.Equal(domain.Username, viewModel.Username);
+        Assert.Equal(domain.StringOptional, viewModel.StringOptional);
+        Assert.Equal(domain.StringRequired, viewModel.StringRequired);
     }
 }

@@ -2,6 +2,9 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using RKSoftware.Packages.ModelTransformer.Generations;
+using RKSoftware.Packages.ModelTransformer.Helpers;
+using RKSoftware.Packages.ModelTransformer.Models;
 
 namespace RKSoftware.Packages.ModelTransformer;
 
@@ -26,11 +29,11 @@ public class ModelTransformerIncrementalGenerator : IIncrementalGenerator
     {
         // Add the marker attribute to the compilation
         context.RegisterPostInitializationOutput(ctx => ctx.AddSource(
-            $"{ModelTransformerIncrementalGeneratorHelper.AttributeName}.g.cs", 
-            SourceText.From(ModelTransformerIncrementalGeneratorHelper.Attribute, Encoding.UTF8))
+            $"{RegistrationAttributeGeneration.Name}.g.cs", 
+            SourceText.From(RegistrationAttributeGeneration.SourceCode, Encoding.UTF8))
         );
 
-        IncrementalValuesProvider<ModelTransformerRegistrationModel?> classesToGenerate = context.SyntaxProvider
+        IncrementalValuesProvider<RegistrationModel?> classesToGenerate = context.SyntaxProvider
             .CreateSyntaxProvider(
                 predicate: static (s, _) => IsSyntaxTargetForGeneration(s), // select classes with attributes
                 transform: static (ctx, _) => GetSemanticTargetForGeneration(ctx)) // select classes with the marker attribute and extract details
@@ -45,7 +48,7 @@ public class ModelTransformerIncrementalGenerator : IIncrementalGenerator
         return node is ClassDeclarationSyntax m && m.AttributeLists.Count > 0;
     }
 
-    private static ModelTransformerRegistrationModel? GetSemanticTargetForGeneration(GeneratorSyntaxContext context)
+    private static RegistrationModel? GetSemanticTargetForGeneration(GeneratorSyntaxContext context)
     {
         // we know the node is a ClassDeclarationSyntax thanks to IsSyntaxTargetForGeneration
         var hostClass = (ClassDeclarationSyntax)context.Node;
@@ -54,28 +57,26 @@ public class ModelTransformerIncrementalGenerator : IIncrementalGenerator
 
         if (host != null)
         {
-            var registrationModel = new ModelTransformerRegistrationModel(host);
+            var registrationModel = new RegistrationModel(host);
 
             // loop through all the attributes on the method
-            foreach (var attributeListSyntax in hostClass.AttributeLists)
+            foreach (var attributeData in host.GetAttributes())
             {
-                foreach (var attributeSyntax in attributeListSyntax.Attributes)
+                var attributeClass = attributeData.AttributeClass;
+                if (attributeClass == null)
                 {
-                    if (context.SemanticModel.GetSymbolInfo(attributeSyntax).Symbol is not IMethodSymbol attributeSymbol)
-                    {
-                        // weird, we couldn't get the symbol, ignore it
-                        continue;
-                    }
-
-                    var attributeTypeSymbol = attributeSymbol.ContainingType;
-                    var name = attributeTypeSymbol.OriginalDefinition.ToDisplayString();
-
-                    // Is the attribute the marker attribute?
-                    if ($"{ModelTransformerIncrementalGeneratorHelper.AttributeNamespace}.{ModelTransformerIncrementalGeneratorHelper.AttributeGenericName}".Equals(name, StringComparison.Ordinal))
-                    {
-                        registrationModel.Attributes.Add(attributeTypeSymbol);
-                    }
+                    continue;
                 }
+
+                var name = attributeClass.OriginalDefinition.ToDisplayString();                               
+
+                // Is the attribute the marker attribute?
+                if ($"{RegistrationAttributeGeneration.Namespace}.{RegistrationAttributeGeneration.GenericName}".Equals(name, StringComparison.Ordinal))
+                {
+                    var attr = new AttributeDataModel(attributeData);
+                    registrationModel.Attributes.Add(attr);
+                }
+                
             }
 
             return registrationModel.Attributes.Count > 0 ? registrationModel : null;
@@ -85,16 +86,23 @@ public class ModelTransformerIncrementalGenerator : IIncrementalGenerator
         return null;
     }
 
-    private static void Execute(SourceProductionContext context, ModelTransformerRegistrationModel? tr)
+    private static void Execute(SourceProductionContext context, RegistrationModel? tr)
     {
         if (tr != null)
         {
             foreach (var attr in tr.Attributes)
             {
-                // generate the source code and add it to the output
-                var result = ModelTransformerIncrementalGeneratorHelper.GenerateExtensionClass(tr.HostNamespace, attr);
+                var incorrectIgnoredProperties = attr.IncorrectIgnoredProperties;
+                if(incorrectIgnoredProperties.Count > 0)
+                {
+                    DiagnosticHelper.CreateInvalidIgnoredPropertyNameWarning(context, attr.Target, incorrectIgnoredProperties);
+                }
 
-                var fileName = $"{attr.TypeArguments.First().Name}Extensions.g.cs";
+                // generate the source code and add it to the output
+                var result = ModelExtensionGeneration.GenerateExtensionClass(tr.HostNamespace, attr);
+
+                var fileName = $"{attr.Attribute.AttributeClass!.TypeArguments.First().Name}Extensions.g.cs";
+
                 // Create a separate partial class file for each class
                 context.AddSource(fileName, SourceText.From(result, Encoding.UTF8));
             }

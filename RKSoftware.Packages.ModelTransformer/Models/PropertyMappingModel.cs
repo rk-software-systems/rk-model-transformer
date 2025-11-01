@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace RKSoftware.Packages.ModelTransformer;
+namespace RKSoftware.Packages.ModelTransformer.Models;
 
 internal class PropertyMappingModel
 {

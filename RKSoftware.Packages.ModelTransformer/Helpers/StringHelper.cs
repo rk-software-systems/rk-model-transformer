@@ -1,4 +1,4 @@
-﻿namespace RKSoftware.Packages.ModelTransformer;
+﻿namespace RKSoftware.Packages.ModelTransformer.Helpers;
 internal class StringHelper
 {
     public static string LowerCaseFirstLetter(string input)

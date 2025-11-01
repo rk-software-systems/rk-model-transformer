@@ -2,7 +2,9 @@
 
 public class UserViewModel
 {
-    public string? Name { get; set; }
+    public string? StringOptional { get; set; }
 
-    public string? Username { get; set; }
+    public required string StringRequired { get; set; }
+
+    public string? StringIgnored { get; set; }
 }

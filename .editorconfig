@@ -12,7 +12,7 @@ dotnet_diagnostic.CA1822.severity = none
 # CA2007: Consider calling ConfigureAwait on the awaited task
 dotnet_diagnostic.CA2007.severity = none
 
-vsspell_ignored_words_ccc =
+vsspell_ignored_words_2BC58653-30FB-478C-B621-05DB2A644117 = 
 
 # IDE0130: Namespace does not match folder structure
 dotnet_diagnostic.IDE0130.severity = none

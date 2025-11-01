@@ -1,8 +1,8 @@
 ﻿using Microsoft.CodeAnalysis;
 
-namespace RKSoftware.Packages.ModelTransformer;
+namespace RKSoftware.Packages.ModelTransformer.Models;
 
-internal sealed class ModelTransformerRegistrationModel(INamedTypeSymbol host)
+internal sealed class RegistrationModel(INamedTypeSymbol host)
 {
     private readonly INamedTypeSymbol _host = host ?? throw new ArgumentNullException(nameof(host));
 
@@ -12,7 +12,7 @@ internal sealed class ModelTransformerRegistrationModel(INamedTypeSymbol host)
     }
 
 #pragma warning disable CA1002 // Do not expose generic lists
-    public List<INamedTypeSymbol> Attributes { get; } = [];
+    public List<AttributeDataModel> Attributes { get; } = [];
 #pragma warning restore CA1002 // Do not expose generic lists
 
     public string HostNamespace

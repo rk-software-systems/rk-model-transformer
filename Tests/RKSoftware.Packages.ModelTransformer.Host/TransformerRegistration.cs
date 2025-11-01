@@ -2,7 +2,7 @@
 
 namespace RKSoftware.Packages.ModelTransformer.Host;
 
-[ModelTransformerRegistration<User, UserViewModel>]
+[ModelTransformerRegistration<User, UserViewModel>(nameof(UserViewModel.StringIgnored))]
 public class TransformerRegistration
 {
 }
