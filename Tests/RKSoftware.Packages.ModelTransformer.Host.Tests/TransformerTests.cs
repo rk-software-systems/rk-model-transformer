@@ -47,7 +47,7 @@ public class TransformerTests
     }
 
     [Fact]
-    public void DomainToViewModelWithConstructorTransformerTest()
+    public void DomainToRecordTransformerTest()
     {
         var domain = new Domain
         {
@@ -56,10 +56,10 @@ public class TransformerTests
             StringIgnored = "Ignore me"
         };
 
-        var dto = domain.ToViewModelWithConstructor();
+        var record = new RecordModel("aa");// domain.ToRecord();
 
-        Assert.Equal(domain.StringOptional, dto.StringOptional);
+        Assert.Equal(domain.StringOptional, record.StringOptional);
 
-        Assert.Equal(domain.StringRequired, dto.StringRequired);
+        Assert.Equal(domain.StringRequired, record.StringRequired);
     }
 }

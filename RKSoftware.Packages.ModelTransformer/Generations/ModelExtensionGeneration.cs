@@ -7,12 +7,16 @@ namespace RKSoftware.Packages.ModelTransformer.Generations;
 
 internal static class ModelExtensionGeneration
 {
+    private static readonly string _indent2 = new('\t', 2);
+    private static readonly string _indent3 = new('\t', 3);
+    private static readonly string _indent4 = new('\t', 4);
+
     public static string GenerateExtensionClass(string hostNamespace, string sourceName, List<StringBuilder> methods)
     {
         var methodsCode = string.Empty;
         if (methods.Count > 0)
         {
-            methodsCode = methods.Aggregate((a, b) => a.AppendLine(b.ToString())).ToString();
+            methodsCode = methods.Aggregate((a, b) => a.Append(b.ToString())).ToString();
         }
 
         var str = $@"
@@ -40,31 +44,30 @@ namespace {hostNamespace}
 
         if (mappings.Count > 0)
         {
-            variableCreationCode = mappings.Select(x => x.VariableCreationCode).Aggregate((a, b) => a.AppendLine(b.ToString())).ToString();
-            methodsCode = mappings.Select(x => x.MethodCode).Aggregate((a, b) => a.AppendLine(b.ToString())).ToString();
-            variableMappingCode = mappings.Select(x => x.VariableMappingCode).Aggregate((a, b) => a.AppendLine(b.ToString())).ToString();
+            variableCreationCode = mappings.Select(x => x.VariableCreationCode).Aggregate((a, b) => a.Append(b.ToString())).ToString();
+            methodsCode = mappings.Select(x => x.MethodCode).Aggregate((a, b) => a.Append(b.ToString())).ToString();
+            variableMappingCode = mappings.Select(x => x.VariableMappingCode).Aggregate((a, b) => a.Append(b.ToString())).ToString();
         }
 
         var sb = new StringBuilder($@"
-        #region to {attr.Target.Name}
+{_indent2}#region to {attr.Target.Name}
 
-        public static {attr.Target.ToDisplayString()} {attr.MethodName}(this {attr.Source.ToDisplayString()} source)
-        {{
-            if (source == null) 
-            {{
-                throw new System.ArgumentNullException(nameof(source));
-            }}
+{_indent2}public static {attr.Target.ToDisplayString()} {attr.MethodName}(this {attr.Source.ToDisplayString()} source)
+{_indent2}{{
+{_indent2}  if (source == null) 
+{_indent2}  {{
+{_indent2}      throw new System.ArgumentNullException(nameof(source));
+{_indent2}  }}
 {variableCreationCode}
-            var target = new {attr.Target.ToDisplayString()}
-            {{
+{_indent2}  var target = new {attr.Target.ToDisplayString()}
+{_indent2}  {{
 {variableMappingCode}
-            }};
-            return target;
-        }}
+{_indent2}  }};
+{_indent2}  return target;
+{_indent2}}}
 {methodsCode}
-
-        #endregion"
-);
+{_indent2}#endregion
+");
         return sb;
     }
 
@@ -76,7 +79,14 @@ namespace {hostNamespace}
 
         var targetProps = attr.Target.GetMembers()
             .OfType<IPropertySymbol>()
-            .Where(x => !x.IsStatic);
+            .Where(x => !x.IsStatic && x.DeclaredAccessibility == Accessibility.Public);
+
+        var constructorParams = attr.Target.GetMembers()
+            .OfType<IMethodSymbol>()
+            .Where(x => x.MethodKind == MethodKind.Constructor && x.DeclaredAccessibility == Accessibility.Public)
+            .Select(x => x.Parameters)
+            .OrderBy(x => x.Length)
+            .First();
 
         foreach (var targetProp in targetProps)
         {
@@ -90,41 +100,11 @@ namespace {hostNamespace}
             }
             var mapping = new PropertyMappingModel(targetProp, attr.Target);
 
-            if (!isIgnored)
-            {
-                if (sourceProp != null)
-                {
-                    mapping.VariableCreationCode.AppendLine(@$"
-            var {mapping.VariableName} = {mapping.DefaultMethodName}(source);
-            {mapping.MethodName}(source, ref {mapping.VariableName});");
-                }
-                else
-                {
-                    mapping.VariableCreationCode.AppendLine(@$"
-            var {mapping.VariableName} = {mapping.MethodName}(source);");
-                }
-            }
+            CreateVariableCreationCode(mapping, isIgnored, sourceProp);
 
-            mapping.VariableMappingCode.Append($@"
-                {mapping.PropertyName} = {(isIgnored ? "default" : mapping.VariableName)},");
+            CreateConstructorCode(mapping, isIgnored);
 
-            if (!isIgnored)
-            {
-                if (sourceProp != null)
-                {
-                    mapping.MethodCode.AppendLine($@"
-        private static {targetProp.Type.ToDisplayString()} {mapping.DefaultMethodName}({attr.Source.ToDisplayString()} source)
-        {{
-            return source.{sourceProp.Name};
-        }}
-        static partial void {mapping.MethodName}({attr.Source.ToDisplayString()} source, ref {targetProp.Type.ToDisplayString()} target);");
-                }
-                else
-                {
-                    mapping.MethodCode.AppendLine($@"
-        private static partial {targetProp.Type.ToDisplayString()} {mapping.MethodName}({attr.Source.ToDisplayString()} source);");
-                }
-            }
+            CreateMethodCode(mapping, isIgnored, targetProp, sourceProp, attr);
 
             mappings.Add(mapping);
         }
@@ -136,5 +116,59 @@ namespace {hostNamespace}
     private static bool IsPropertyIgnored(IPropertySymbol property, FrozenSet<string> ignoredProperties)
     {
         return ignoredProperties.TryGetValue(property.Name, out _);
+    }
+
+    private static void CreateVariableCreationCode(PropertyMappingModel mapping, bool isIgnored, IPropertySymbol? sourceProp)
+    {
+        if (!isIgnored)
+        {
+            if (sourceProp != null)
+            {
+                mapping.VariableCreationCode.AppendLine(
+@$"{_indent3}var {mapping.VariableName} = {mapping.DefaultMethodName}(source);
+{_indent3}{mapping.MethodName}(source, ref {mapping.VariableName});
+");
+            }
+            else
+            {
+                mapping.VariableCreationCode.AppendLine(
+@$"{_indent3}var {mapping.VariableName} = {mapping.MethodName}(source);
+");
+            }
+        }
+    }
+
+    private static void CreateConstructorCode(PropertyMappingModel mapping, bool isIgnored)
+    {
+        mapping.VariableMappingCode.AppendLine(
+$@"{_indent4}{mapping.PropertyName} = {(isIgnored ? "default" : mapping.VariableName)},");
+    }
+
+    private static void CreateMethodCode(
+        PropertyMappingModel mapping,
+        bool isIgnored, 
+        IPropertySymbol targetProp, 
+        IPropertySymbol? sourceProp,
+        AttributeDataModel attr)
+    {
+        if (!isIgnored)
+        {
+            if (sourceProp != null)
+            {
+                mapping.MethodCode.AppendLine(
+$@"{_indent2}private static {targetProp.Type.ToDisplayString()} {mapping.DefaultMethodName}({attr.Source.ToDisplayString()} source)
+{_indent2}{{
+{_indent2}  return source.{sourceProp.Name};
+{_indent2}}}
+{_indent2}static partial void {mapping.MethodName}({attr.Source.ToDisplayString()} source, ref {targetProp.Type.ToDisplayString()} target);
+");
+            }
+            else
+            {
+                mapping.MethodCode.AppendLine(
+$@"{_indent2}private static partial {targetProp.Type.ToDisplayString()} {mapping.MethodName}({attr.Source.ToDisplayString()} source);
+");
+            }
+        }
     }
 }
