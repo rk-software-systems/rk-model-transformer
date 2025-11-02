@@ -13,9 +13,10 @@ internal static class RegistrationAttributeGeneration
 
 namespace {Namespace}
 {{
-    [System.AttributeUsage(System.AttributeTargets.Class)]
-    [System.Diagnostics.CodeAnalysis.SuppressMessage(""Design"", ""CS9113:Parameter is unread"")]
+    [System.AttributeUsage(System.AttributeTargets.Class, AllowMultiple=true)]
+#pragma warning disable CS9113
     public sealed class {GenericName} (params string[] ignoredProperties) : System.Attribute
+#pragma warning restore CS9113
     {{
     }}
 }}";

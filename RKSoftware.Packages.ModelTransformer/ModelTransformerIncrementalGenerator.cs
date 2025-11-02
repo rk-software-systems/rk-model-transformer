@@ -90,21 +90,30 @@ public class ModelTransformerIncrementalGenerator : IIncrementalGenerator
     {
         if (tr != null)
         {
-            foreach (var attr in tr.Attributes)
+            var groupedBySource = tr.Attributes
+                .GroupBy(a => a.Source.Name)
+                .ToList();
+
+            foreach (var group in groupedBySource)
             {
-                var incorrectIgnoredProperties = attr.IncorrectIgnoredProperties;
-                if(incorrectIgnoredProperties.Count > 0)
+                var exMethods = new List<StringBuilder>();
+                foreach (var attr in group)
                 {
-                    DiagnosticHelper.CreateInvalidIgnoredPropertyNameWarning(context, attr.Target, incorrectIgnoredProperties);
+                    var incorrectIgnoredProperties = attr.IncorrectIgnoredProperties;
+                    if (incorrectIgnoredProperties.Count > 0)
+                    {
+                        DiagnosticHelper.CreateInvalidIgnoredPropertyNameWarning(context, attr.Target, incorrectIgnoredProperties);
+                    }
+
+                    var exMethod = ModelExtensionGeneration.GenerateExtensionMethod(attr);
+                    exMethods.Add(exMethod);
                 }
 
-                // generate the source code and add it to the output
-                var result = ModelExtensionGeneration.GenerateExtensionClass(tr.HostNamespace, attr);
+                var exClass = ModelExtensionGeneration.GenerateExtensionClass(tr.HostNamespace, group.Key, exMethods);
 
-                var fileName = $"{attr.Attribute.AttributeClass!.TypeArguments.First().Name}Extensions.g.cs";
+                var fileName = $"{group.Key}Extensions.g.cs";
 
-                // Create a separate partial class file for each class
-                context.AddSource(fileName, SourceText.From(result, Encoding.UTF8));
+                context.AddSource(fileName, SourceText.From(exClass, Encoding.UTF8));
             }
         }
     }

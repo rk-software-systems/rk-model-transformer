@@ -12,7 +12,7 @@ public class TransformerTests
             StringIgnored = "Ignore me"
         };
 
-        var viewModel = domain.Transform();
+        var viewModel = domain.ToViewModel();
 
         Assert.Equal(domain.StringOptional, viewModel.StringOptional);
 
@@ -21,5 +21,26 @@ public class TransformerTests
         Assert.True(string.IsNullOrEmpty(viewModel.StringIgnored));
 
         Assert.False(string.IsNullOrEmpty(viewModel.StringMissed));
+    }
+
+    [Fact]
+    public void DomainToDtoTransformerTest()
+    {
+        var domain = new Domain
+        {
+            StringOptional = "John Doe",
+            StringRequired = "johndoe",
+            StringIgnored = "Ignore me"
+        };
+
+        var dto = domain.ToDto();
+
+        Assert.Equal(domain.StringOptional, dto.StringOptional);
+
+        Assert.Equal(domain.StringRequired, dto.StringRequired);
+
+        Assert.True(string.IsNullOrEmpty(dto.StringIgnored));
+
+        Assert.False(string.IsNullOrEmpty(dto.StringMissed));
     }
 }
