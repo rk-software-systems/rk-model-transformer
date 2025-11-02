@@ -4,7 +4,7 @@ using RKSoftware.Packages.ModelTransformer.Generations;
 
 namespace RKSoftware.Packages.ModelTransformer.Models;
 
-internal class AttributeDataModel
+internal sealed class AttributeDataModel
 {
     #region fields
 

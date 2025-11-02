@@ -1,23 +1,18 @@
-﻿using Microsoft.CodeAnalysis;
-using RKSoftware.Packages.ModelTransformer.Helpers;
+﻿using System.Collections.Frozen;
+using Microsoft.CodeAnalysis;
 using RKSoftware.Packages.ModelTransformer.Models;
 
 namespace RKSoftware.Packages.ModelTransformer.Generations;
 
 internal static class ModelExtensionGeneration
 {
-    public static string GenerateExtensionClass (string hostNamespace, AttributeDataModel attr)
+    public static string GenerateExtensionClass(string hostNamespace, AttributeDataModel attr)
     {
-        var source = attr.Source;
-        var target = attr.Target;
-
-        var ignoredProperties = attr.IgnoredProperties;
-
         var variableCreationCode = string.Empty;
         var methodsCode = string.Empty;
         var variableMappingCode = string.Empty;
 
-        var mappings = GeneratePropertyMappings(source, target);
+        var mappings = GeneratePropertyMappings(attr);
 
         if (mappings.Count > 0)
         {
@@ -32,16 +27,16 @@ internal static class ModelExtensionGeneration
 
 namespace {hostNamespace}
 {{
-    public static partial class {source.Name}Extensions
+    public static partial class {attr.Source.Name}Extensions
     {{
-        public static {target.ToDisplayString()} Transform(this {source.ToDisplayString()} source)
+        public static {attr.Target.ToDisplayString()} Transform(this {attr.Source.ToDisplayString()} source)
         {{
             if (source == null) 
             {{
                 throw new System.ArgumentNullException(nameof(source));
             }}
 {variableCreationCode}
-            var target = new {target.ToDisplayString()}
+            var target = new {attr.Target.ToDisplayString()}
             {{
 {variableMappingCode}
             }};
@@ -51,48 +46,75 @@ namespace {hostNamespace}
     }}    
 }}";
         return str;
-    }    
+    }
 
     #region helpers
 
-    private static List<PropertyMappingModel> GeneratePropertyMappings(ITypeSymbol source, ITypeSymbol target)
+    private static List<PropertyMappingModel> GeneratePropertyMappings(AttributeDataModel attr)
     {
         var mappings = new List<PropertyMappingModel>();
-        foreach (var sourceProp in source.GetMembers().OfType<IPropertySymbol>())
+
+        var targetProps = attr.Target.GetMembers()
+            .OfType<IPropertySymbol>()
+            .Where(x => !x.IsStatic);
+
+        foreach (var targetProp in targetProps)
         {
-            var targetProp = target.GetMembers()
-                .OfType<IPropertySymbol>()
-                .FirstOrDefault(p => p.Name == sourceProp.Name && SymbolEqualityComparer.Default.Equals(p.Type, sourceProp.Type));
-
-            if (targetProp != null && !sourceProp.IsStatic && !targetProp.IsStatic && targetProp.SetMethod != null)
+            IPropertySymbol? sourceProp = null;
+            var isIgnored = IsPropertyIgnored(targetProp, attr.IgnoredProperties);
+            if (!isIgnored)
             {
-                var mapping = new PropertyMappingModel
+                sourceProp = attr.Source.GetMembers()
+                    .OfType<IPropertySymbol>()
+                    .FirstOrDefault(x => !x.IsStatic && x.Name.Equals(targetProp.Name, StringComparison.Ordinal));
+            }
+            var mapping = new PropertyMappingModel(targetProp);
+
+            if (!isIgnored)
+            {
+                if (sourceProp != null)
                 {
-                    PropertyName = targetProp.Name,
-                    VariableName = StringHelper.LowerCaseFirstLetter(targetProp.Name)
-                };
-                
-                var defaultMethodName = $"To{mapping.PropertyName}Default";
-                var methodName = $"To{mapping.PropertyName}";
+                    mapping.VariableCreationCode.AppendLine(@$"
+            var {mapping.VariableName} = {mapping.DefaultMethodName}(source);
+            {mapping.MethodName}(source, ref {mapping.VariableName});");
+                }
+                else
+                {
+                    mapping.VariableCreationCode.AppendLine(@$"
+            var {mapping.VariableName} = {mapping.MethodName}(source);");
+                }
+            }
 
-                mapping.VariableCreationCode.AppendLine(@$"
-            var {mapping.VariableName} = {defaultMethodName}(source);
-            {methodName}(source, ref {mapping.VariableName});");
+            mapping.VariableMappingCode.Append($@"
+                {mapping.PropertyName} = {(isIgnored ? "default" : mapping.VariableName)},");
 
-                mapping.VariableMappingCode.Append($@"
-                {mapping.PropertyName} = {mapping.VariableName},");
-
-                mapping.MethodCode.AppendLine($@"
-        private static {targetProp.Type.ToDisplayString()} {defaultMethodName}({source.ToDisplayString()} source)
+            if (!isIgnored)
+            {
+                if (sourceProp != null)
+                {
+                    mapping.MethodCode.AppendLine($@"
+        private static {targetProp.Type.ToDisplayString()} {mapping.DefaultMethodName}({attr.Source.ToDisplayString()} source)
         {{
             return source.{sourceProp.Name};
         }}
-        static partial void {methodName}({source.ToDisplayString()} source, ref {targetProp.Type.ToDisplayString()} target);");
-
-                mappings.Add(mapping);
+        static partial void {mapping.MethodName}({attr.Source.ToDisplayString()} source, ref {targetProp.Type.ToDisplayString()} target);");
+                }
+                else
+                {
+                    mapping.MethodCode.AppendLine($@"
+        private static partial {targetProp.Type.ToDisplayString()} {mapping.MethodName}({attr.Source.ToDisplayString()} source);");
+                }
             }
+
+            mappings.Add(mapping);
         }
+    
         return mappings;
     }
     #endregion
+
+    private static bool IsPropertyIgnored(IPropertySymbol property, FrozenSet<string> ignoredProperties)
+    {
+        return ignoredProperties.TryGetValue(property.Name, out _);
+    }
 }

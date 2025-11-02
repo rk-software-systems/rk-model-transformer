@@ -2,7 +2,7 @@
 
 namespace RKSoftware.Packages.ModelTransformer.Helpers;
 
-internal class DiagnosticHelper
+internal static class DiagnosticHelper
 {
     #region constants
 
