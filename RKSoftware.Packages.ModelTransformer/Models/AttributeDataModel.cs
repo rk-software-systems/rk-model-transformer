@@ -1,4 +1,5 @@
 ﻿using System.Collections.Frozen;
+using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
 using RKSoftware.Packages.ModelTransformer.Generations;
 
@@ -6,11 +7,19 @@ namespace RKSoftware.Packages.ModelTransformer.Models;
 
 internal sealed class AttributeDataModel
 {
+    #region constants
+
+    private static readonly Regex _methodNameRegex = new(@"^[A-Za-z_][A-Za-z0-9_]*$");
+
+    #endregion
+
+
     #region fields
 
     private readonly AttributeData _attr;
     private readonly FrozenSet<string> _ignoredProperties;
     private readonly FrozenSet<string> _incorrectIgnoredProperties;
+    private readonly string _methodName;
     #endregion
 
     #region props
@@ -46,6 +55,11 @@ internal sealed class AttributeDataModel
         }
     }
 
+    public string MethodName
+    {
+        get => _methodName;
+    }
+
     #endregion
 
     #region ctor
@@ -56,53 +70,56 @@ internal sealed class AttributeDataModel
         var (correct, incorrect) = GetIgnoredProperties();
         _ignoredProperties = correct.ToFrozenSet(StringComparer.Ordinal);
         _incorrectIgnoredProperties = incorrect.ToFrozenSet(StringComparer.Ordinal);
+        _methodName = GetMethodName();
     }
 
     #endregion
 
     #region methods
 
+    public string? GetMethodNameIfInvalid()
+    {        
+        return _methodNameRegex.IsMatch(_methodName) ? null : _methodName;
+    }
+
     #endregion
+
+    #region helpers
+
+    private string GetMethodName()
+    {
+        var namedArgument = _attr.NamedArguments
+            .FirstOrDefault(x => RegistrationAttributeGeneration.MethodNamePropertyName.Equals(x.Key, StringComparison.Ordinal));
+
+        if (namedArgument.Value.Value is string methodName && !string.IsNullOrWhiteSpace(methodName))
+        {
+            return methodName;
+        }
+
+        return RegistrationAttributeGeneration.DefaultMethodName;
+    }
 
     private (HashSet<string>, HashSet<string>) GetIgnoredProperties()
     {
         var correct = new HashSet<string>();
         var incorrect = new HashSet<string>();
 
-        // Positional constructor arguments (supports params string[] or single string)
-        if (_attr.ConstructorArguments.Length > 0)
-        {
-            var first = _attr.ConstructorArguments[0];
-            var value = GetIgnoredPropertyValue(first);
-            if (value != null)
-            {
-                if (ExistsInTraget(value))
-                {
-                    correct.Add(value);
-                }
-                else
-                {
-                    incorrect.Add(value);
-                }
-            }
-        }
+        var namedArgument = _attr.NamedArguments
+            .FirstOrDefault(x => RegistrationAttributeGeneration.IgnoredPropertiesPropertyName.Equals(x.Key, StringComparison.Ordinal));
 
-        // Named arguments (e.g. <parameterName> = new[] { "A", "B" })
-        foreach (var named in _attr.NamedArguments)
+        if (namedArgument.Value.Kind == TypedConstantKind.Array && !namedArgument.Value.Values.IsDefaultOrEmpty)
         {
-            if (string.Equals(named.Key, RegistrationAttributeGeneration.IgnoredPropertiesParameterName, StringComparison.Ordinal))
+            foreach (var tc in namedArgument.Value.Values)
             {
-                var namedValue = named.Value;
-                var value = GetIgnoredPropertyValue(namedValue);
-                if (value != null && ExistsInTraget(value))
+                if (tc.Value is string v && !string.IsNullOrWhiteSpace(v))
                 {
-                    if (ExistsInTraget(value))
+                    if (ExistsInTraget(v))
                     {
-                        correct.Add(value);
+                        correct.Add(v);
                     }
                     else
                     {
-                        incorrect.Add(value);
+                        incorrect.Add(v);
                     }
                 }
             }
@@ -117,23 +134,5 @@ internal sealed class AttributeDataModel
         return targetProps.Any(p => string.Equals(p.Name, prop, StringComparison.Ordinal));
     }
 
-    private static string? GetIgnoredPropertyValue(TypedConstant arg)
-    {
-        if (arg.Kind == TypedConstantKind.Array)
-        {
-            foreach (var tc in arg.Values)
-            {
-                if (tc.Value is string s && !string.IsNullOrWhiteSpace(s))
-                {
-                    return s;
-                }
-            }
-        }
-        else if (arg.Value is string s && !string.IsNullOrWhiteSpace(s))
-        {
-            return s;
-        }
-
-        return null;
-    }
+    #endregion
 }

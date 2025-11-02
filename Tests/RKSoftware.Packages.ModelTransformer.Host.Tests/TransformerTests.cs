@@ -1,4 +1,6 @@
-﻿namespace RKSoftware.Packages.ModelTransformer.Host.Tests;
+﻿using RKSoftware.Packages.ModelTransformer.Host.TestSuite;
+
+namespace RKSoftware.Packages.ModelTransformer.Host.Tests;
 
 public class TransformerTests
 {
@@ -12,7 +14,7 @@ public class TransformerTests
             StringIgnored = "Ignore me"
         };
 
-        var viewModel = domain.ToViewModel();
+        var viewModel = domain.Transform();
 
         Assert.Equal(domain.StringOptional, viewModel.StringOptional);
 
@@ -42,5 +44,22 @@ public class TransformerTests
         Assert.True(string.IsNullOrEmpty(dto.StringIgnored));
 
         Assert.False(string.IsNullOrEmpty(dto.StringMissed));
+    }
+
+    [Fact]
+    public void DomainToViewModelWithConstructorTransformerTest()
+    {
+        var domain = new Domain
+        {
+            StringOptional = "John Doe",
+            StringRequired = "johndoe",
+            StringIgnored = "Ignore me"
+        };
+
+        var dto = domain.ToViewModelWithConstructor();
+
+        Assert.Equal(domain.StringOptional, dto.StringOptional);
+
+        Assert.Equal(domain.StringRequired, dto.StringRequired);
     }
 }

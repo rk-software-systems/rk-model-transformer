@@ -102,7 +102,14 @@ public class ModelTransformerIncrementalGenerator : IIncrementalGenerator
                     var incorrectIgnoredProperties = attr.IncorrectIgnoredProperties;
                     if (incorrectIgnoredProperties.Count > 0)
                     {
-                        DiagnosticHelper.CreateInvalidIgnoredPropertyNameWarning(context, attr.Target, incorrectIgnoredProperties);
+                        DiagnosticHelper.CreateInvalidIgnoredPropertyNameWarning(context, attr.Source, attr.Target, incorrectIgnoredProperties);
+                    }
+
+                    var invalidMethodName = attr.GetMethodNameIfInvalid();
+                    if (invalidMethodName != null)
+                    {
+                        DiagnosticHelper.CreateInvalidIgnoredMethodNameError(context, attr.Source, attr.Target, invalidMethodName);
+                        continue;
                     }
 
                     var exMethod = ModelExtensionGeneration.GenerateExtensionMethod(attr);

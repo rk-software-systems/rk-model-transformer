@@ -1,10 +1,12 @@
-﻿namespace RKSoftware.Packages.ModelTransformer.Host;
+﻿namespace RKSoftware.Packages.ModelTransformer.Host.TestSuite;
 
-public class Domain
+public class Dto
 {
     public string? StringOptional { get; set; }
 
     public required string StringRequired { get; set; }
 
     public string? StringIgnored { get; set; }
+
+    public string? StringMissed { get; set; }
 }

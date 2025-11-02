@@ -48,7 +48,7 @@ namespace {hostNamespace}
         var sb = new StringBuilder($@"
         #region to {attr.Target.Name}
 
-        public static {attr.Target.ToDisplayString()} To{attr.Target.Name}(this {attr.Source.ToDisplayString()} source)
+        public static {attr.Target.ToDisplayString()} {attr.MethodName}(this {attr.Source.ToDisplayString()} source)
         {{
             if (source == null) 
             {{

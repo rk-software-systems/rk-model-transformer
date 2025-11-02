@@ -1,6 +1,6 @@
-﻿namespace RKSoftware.Packages.ModelTransformer.Host;
+﻿namespace RKSoftware.Packages.ModelTransformer.Host.TestSuite;
 
-public class Dto
+public class ViewModel
 {
     public string? StringOptional { get; set; }
 

@@ -1,4 +1,4 @@
-﻿namespace RKSoftware.Packages.ModelTransformer.Host;
+﻿namespace RKSoftware.Packages.ModelTransformer.Host.TestSuite;
 
 public static partial class DomainExtensions
 {

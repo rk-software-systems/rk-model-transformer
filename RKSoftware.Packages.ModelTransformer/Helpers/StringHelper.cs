@@ -7,4 +7,11 @@ internal static class StringHelper
             ? string.Empty
             : string.Concat(char.ToLowerInvariant(input[0]), input.Substring(1));
     }
+
+    public static string UpperCaseFirstLetter(string input)
+    {
+        return string.IsNullOrEmpty(input)
+            ? string.Empty
+            : string.Concat(char.ToUpperInvariant(input[0]), input.Substring(1));
+    }
 }
