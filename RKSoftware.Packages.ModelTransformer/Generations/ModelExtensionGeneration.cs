@@ -1,5 +1,5 @@
 ﻿using System.Collections.Frozen;
-using System.Text;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using RKSoftware.Packages.ModelTransformer.Models;
 
@@ -7,16 +7,19 @@ namespace RKSoftware.Packages.ModelTransformer.Generations;
 
 internal static class ModelExtensionGeneration
 {
+    private static readonly string _newLine = new('\n', 1);
+
+    private static readonly string _indent1 = new('\t', 1);
     private static readonly string _indent2 = new('\t', 2);
     private static readonly string _indent3 = new('\t', 3);
     private static readonly string _indent4 = new('\t', 4);
 
-    public static string GenerateExtensionClass(string hostNamespace, string sourceName, List<StringBuilder> methods)
+    public static string GenerateExtensionClass(string hostNamespace, string sourceName, List<string> methods)
     {
         var methodsCode = string.Empty;
         if (methods.Count > 0)
         {
-            methodsCode = methods.Aggregate((a, b) => a.Append(b.ToString())).ToString();
+            methodsCode = string.Join(_newLine, methods);
         }
 
         var str = $@"
@@ -25,50 +28,87 @@ internal static class ModelExtensionGeneration
 
 namespace {hostNamespace}
 {{
-    public static partial class {sourceName}Extensions
-    {{
-        {methodsCode}
-    }}    
+{_indent1}public static partial class {sourceName}Extensions
+{_indent1}{{
+{_indent2}{methodsCode}
+{_indent1}}}    
 }}";
         return str;
     }
 
 
-    public static StringBuilder GenerateExtensionMethod(AttributeDataModel attr)
+    public static string GenerateExtensionMethod(AttributeDataModel attr)
     {
         var variableCreationCode = string.Empty;
         var methodsCode = string.Empty;
         var variableMappingCode = string.Empty;
+        var constructorVariableMappingCode = string.Empty;
 
         var mappings = GeneratePropertyMappings(attr);
 
         if (mappings.Count > 0)
         {
-            variableCreationCode = mappings.Select(x => x.VariableCreationCode).Aggregate((a, b) => a.Append(b.ToString())).ToString();
-            methodsCode = mappings.Select(x => x.MethodCode).Aggregate((a, b) => a.Append(b.ToString())).ToString();
-            variableMappingCode = mappings.Select(x => x.VariableMappingCode).Aggregate((a, b) => a.Append(b.ToString())).ToString();
+            var variableCreations = mappings
+                .Select(x => x.VariableCreationCode)
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .ToList();
+
+            if (variableCreations.Count > 0)
+            {
+                variableCreationCode = $"{_newLine}{string.Join($"{_newLine}{_newLine}", variableCreations)}{_newLine}";
+            }                           
+
+            var variableMappings = mappings
+                .Select(x => x.VariableMappingCode)
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .ToList();
+
+            if (variableMappings.Count > 0)
+            {
+                variableMappingCode = string.Join($",{_newLine}", variableMappings);
+            }
+
+            var constructorVariableMappings = mappings
+                .Select(x => x.ConstructorVariableMappingCode)
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .ToList();
+
+            if (constructorVariableMappings.Count > 0)
+            {
+                constructorVariableMappingCode = $"{_newLine}{string.Join($",{_newLine}", constructorVariableMappings)}";
+            }
+
+            var methods = mappings
+                .Select(x => x.MethodCode)
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .ToList();
+
+            if (methods.Count > 0)
+            {
+                methodsCode = $"{_newLine}{string.Join($"{_newLine}{_newLine}", methods)}{_newLine}";
+            }
         }
 
-        var sb = new StringBuilder($@"
+        var str = $@"
 {_indent2}#region to {attr.Target.Name}
 
 {_indent2}public static {attr.Target.ToDisplayString()} {attr.MethodName}(this {attr.Source.ToDisplayString()} source)
 {_indent2}{{
-{_indent2}  if (source == null) 
-{_indent2}  {{
-{_indent2}      throw new System.ArgumentNullException(nameof(source));
-{_indent2}  }}
+{_indent3}if (source == null) 
+{_indent3}{{
+{_indent4}throw new System.ArgumentNullException(nameof(source));
+{_indent3}}}
 {variableCreationCode}
-{_indent2}  var target = new {attr.Target.ToDisplayString()}
-{_indent2}  {{
+{_indent3}var target = new {attr.Target.ToDisplayString()} ({constructorVariableMappingCode})
+{_indent3}{{
 {variableMappingCode}
-{_indent2}  }};
-{_indent2}  return target;
+{_indent3}}};
+{_indent3}return target;
 {_indent2}}}
 {methodsCode}
 {_indent2}#endregion
-");
-        return sb;
+";
+        return str;
     }
 
     #region helpers
@@ -102,13 +142,13 @@ namespace {hostNamespace}
 
             CreateVariableCreationCode(mapping, isIgnored, sourceProp);
 
-            CreateConstructorCode(mapping, isIgnored);
+            CreateConstructorCode(mapping, isIgnored, constructorParams);
 
             CreateMethodCode(mapping, isIgnored, targetProp, sourceProp, attr);
 
             mappings.Add(mapping);
         }
-    
+
         return mappings;
     }
     #endregion
@@ -124,30 +164,34 @@ namespace {hostNamespace}
         {
             if (sourceProp != null)
             {
-                mapping.VariableCreationCode.AppendLine(
+                mapping.VariableCreationCode =
 @$"{_indent3}var {mapping.VariableName} = {mapping.DefaultMethodName}(source);
-{_indent3}{mapping.MethodName}(source, ref {mapping.VariableName});
-");
+{_indent3}{mapping.MethodName}(source, ref {mapping.VariableName});";
             }
             else
             {
-                mapping.VariableCreationCode.AppendLine(
-@$"{_indent3}var {mapping.VariableName} = {mapping.MethodName}(source);
-");
+                mapping.VariableCreationCode = @$"{_indent3}var {mapping.VariableName} = {mapping.MethodName}(source);";
             }
         }
     }
 
-    private static void CreateConstructorCode(PropertyMappingModel mapping, bool isIgnored)
+    private static void CreateConstructorCode(PropertyMappingModel mapping, bool isIgnored, ImmutableArray<IParameterSymbol> constructorParams)
     {
-        mapping.VariableMappingCode.AppendLine(
-$@"{_indent4}{mapping.PropertyName} = {(isIgnored ? "default" : mapping.VariableName)},");
+        var param = constructorParams.FirstOrDefault(x => x.Name.Equals(mapping.PropertyName, StringComparison.Ordinal));
+        if (param != null)
+        {
+            mapping.ConstructorVariableMappingCode = $@"{_indent4}{mapping.PropertyName} : {(isIgnored ? "default" : mapping.VariableName)}";
+        }
+        else
+        {
+            mapping.VariableMappingCode = $@"{_indent4}{mapping.PropertyName} = {(isIgnored ? "default" : mapping.VariableName)}";
+        }
     }
 
     private static void CreateMethodCode(
         PropertyMappingModel mapping,
-        bool isIgnored, 
-        IPropertySymbol targetProp, 
+        bool isIgnored,
+        IPropertySymbol targetProp,
         IPropertySymbol? sourceProp,
         AttributeDataModel attr)
     {
@@ -155,19 +199,17 @@ $@"{_indent4}{mapping.PropertyName} = {(isIgnored ? "default" : mapping.Variable
         {
             if (sourceProp != null)
             {
-                mapping.MethodCode.AppendLine(
+                mapping.MethodCode =
 $@"{_indent2}private static {targetProp.Type.ToDisplayString()} {mapping.DefaultMethodName}({attr.Source.ToDisplayString()} source)
 {_indent2}{{
-{_indent2}  return source.{sourceProp.Name};
+{_indent3}return source.{sourceProp.Name};
 {_indent2}}}
-{_indent2}static partial void {mapping.MethodName}({attr.Source.ToDisplayString()} source, ref {targetProp.Type.ToDisplayString()} target);
-");
+{_indent2}static partial void {mapping.MethodName}({attr.Source.ToDisplayString()} source, ref {targetProp.Type.ToDisplayString()} target);";
             }
             else
             {
-                mapping.MethodCode.AppendLine(
-$@"{_indent2}private static partial {targetProp.Type.ToDisplayString()} {mapping.MethodName}({attr.Source.ToDisplayString()} source);
-");
+                mapping.MethodCode = 
+$@"{_indent2}private static partial {targetProp.Type.ToDisplayString()} {mapping.MethodName}({attr.Source.ToDisplayString()} source);";
             }
         }
     }

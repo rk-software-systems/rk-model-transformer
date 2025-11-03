@@ -96,7 +96,7 @@ public class ModelTransformerIncrementalGenerator : IIncrementalGenerator
 
             foreach (var group in groupedBySource)
             {
-                var exMethods = new List<StringBuilder>();
+                var exMethods = new List<string>();
                 foreach (var attr in group)
                 {
                     var incorrectIgnoredProperties = attr.IncorrectIgnoredProperties;

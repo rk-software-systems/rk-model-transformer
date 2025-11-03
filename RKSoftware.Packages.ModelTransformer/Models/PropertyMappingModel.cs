@@ -1,5 +1,4 @@
-﻿using System.Text;
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using RKSoftware.Packages.ModelTransformer.Helpers;
 
 namespace RKSoftware.Packages.ModelTransformer.Models;
@@ -14,11 +13,13 @@ internal sealed class PropertyMappingModel
 
     public string MethodName { get; }
 
-    public StringBuilder VariableCreationCode { get; set; } = new StringBuilder();
+    public string VariableCreationCode { get; set; } = string.Empty;
 
-    public StringBuilder VariableMappingCode { get; set; } = new StringBuilder();
+    public string VariableMappingCode { get; set; } = string.Empty;
 
-    public StringBuilder MethodCode { get; set; } = new StringBuilder();
+    public string ConstructorVariableMappingCode { get; set; } = string.Empty;
+
+    public string MethodCode { get; set; } = string.Empty;
 
     #region ctor
 

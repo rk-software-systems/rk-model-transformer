@@ -56,7 +56,7 @@ public class TransformerTests
             StringIgnored = "Ignore me"
         };
 
-        var record = new RecordModel("aa");// domain.ToRecord();
+        var record = domain.ToRecord();
 
         Assert.Equal(domain.StringOptional, record.StringOptional);
 
