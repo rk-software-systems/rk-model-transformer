@@ -1,5 +1,4 @@
 ﻿using System.Collections.Frozen;
-using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using RKSoftware.Packages.ModelTransformer.Models;
 
@@ -117,34 +116,29 @@ namespace {hostNamespace}
     {
         var mappings = new List<PropertyMappingModel>();
 
-        var targetProps = attr.Target.GetMembers()
-            .OfType<IPropertySymbol>()
-            .Where(x => !x.IsStatic && x.DeclaredAccessibility == Accessibility.Public);
+        var targetProps = attr.TargetProperties;
 
-        var constructorParams = attr.Target.GetMembers()
-            .OfType<IMethodSymbol>()
-            .Where(x => x.MethodKind == MethodKind.Constructor && x.DeclaredAccessibility == Accessibility.Public)
-            .Select(x => x.Parameters)
-            .OrderBy(x => x.Length)
-            .First();
+        var constructorParams = attr.TargetConstructorParams;
 
         foreach (var targetProp in targetProps)
         {
             IPropertySymbol? sourceProp = null;
-            var isIgnored = IsPropertyIgnored(targetProp, attr.IgnoredProperties);
+            var isIgnored = attr.IgnoredProperties.TryGetValue(targetProp.Key, out _);
             if (!isIgnored)
             {
-                sourceProp = attr.Source.GetMembers()
-                    .OfType<IPropertySymbol>()
-                    .FirstOrDefault(x => !x.IsStatic && x.Name.Equals(targetProp.Name, StringComparison.Ordinal));
+                if (attr.SourceProperties.TryGetValue(targetProp.Key, out sourceProp) &&
+                   !sourceProp.Type.Equals(targetProp.Value.Type, SymbolEqualityComparer.IncludeNullability))
+                {
+                    sourceProp = null;
+                }
             }
-            var mapping = new PropertyMappingModel(targetProp, attr.Target);
+            var mapping = new PropertyMappingModel(targetProp.Value, attr.Target);
 
             CreateVariableCreationCode(mapping, isIgnored, sourceProp);
 
             CreateConstructorCode(mapping, isIgnored, constructorParams);
 
-            CreateMethodCode(mapping, isIgnored, targetProp, sourceProp, attr);
+            CreateMethodCode(mapping, isIgnored, targetProp.Value, sourceProp, attr);
 
             mappings.Add(mapping);
         }
@@ -152,11 +146,6 @@ namespace {hostNamespace}
         return mappings;
     }
     #endregion
-
-    private static bool IsPropertyIgnored(IPropertySymbol property, FrozenSet<string> ignoredProperties)
-    {
-        return ignoredProperties.TryGetValue(property.Name, out _);
-    }
 
     private static void CreateVariableCreationCode(PropertyMappingModel mapping, bool isIgnored, IPropertySymbol? sourceProp)
     {
@@ -175,10 +164,9 @@ namespace {hostNamespace}
         }
     }
 
-    private static void CreateConstructorCode(PropertyMappingModel mapping, bool isIgnored, ImmutableArray<IParameterSymbol> constructorParams)
+    private static void CreateConstructorCode(PropertyMappingModel mapping, bool isIgnored, FrozenDictionary<string, IParameterSymbol> constructorParams)
     {
-        var param = constructorParams.FirstOrDefault(x => x.Name.Equals(mapping.PropertyName, StringComparison.Ordinal));
-        if (param != null)
+        if (constructorParams.TryGetValue(mapping.PropertyName, out _))
         {
             mapping.ConstructorVariableMappingCode = $@"{_indent4}{mapping.PropertyName} : {(isIgnored ? "default" : mapping.VariableName)}";
         }

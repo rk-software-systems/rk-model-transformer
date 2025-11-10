@@ -17,48 +17,38 @@ internal sealed class AttributeDataModel
     #region fields
 
     private readonly AttributeData _attr;
+    private readonly ITypeSymbol _source;
+    private readonly FrozenDictionary<string, IPropertySymbol> _sourceProperties;
+    private readonly ITypeSymbol _target;
+    private readonly FrozenDictionary<string, IPropertySymbol> _targetProperties;
+    private readonly FrozenDictionary<string, IParameterSymbol> _targetConstructorParams;
     private readonly FrozenSet<string> _ignoredProperties;
     private readonly FrozenSet<string> _incorrectIgnoredProperties;
+    private readonly FrozenSet<string> _notIgnoredReadonlyProperties;
     private readonly string _methodName;
     #endregion
 
     #region props
 
-    public AttributeData Attribute
-    {
-        get => _attr;
-    }
+    public AttributeData Attribute => _attr;
 
-    public ITypeSymbol Source
-    {
-        get => _attr.AttributeClass!.TypeArguments.First();
-    }
+    public ITypeSymbol Source => _source;
 
-    public ITypeSymbol Target
-    {
-        get => _attr.AttributeClass!.TypeArguments.Last();
-    }
+    public FrozenDictionary<string, IPropertySymbol> SourceProperties => _sourceProperties;
 
-    public FrozenSet<string> IgnoredProperties
-    {
-        get
-        {
-            return _ignoredProperties;
-        }
-    }
+    public ITypeSymbol Target => _target;   
 
-    public FrozenSet<string> IncorrectIgnoredProperties
-    {
-        get
-        {
-            return _incorrectIgnoredProperties;
-        }
-    }
+    public FrozenDictionary<string, IPropertySymbol> TargetProperties => _targetProperties;
 
-    public string MethodName
-    {
-        get => _methodName;
-    }
+    public FrozenDictionary<string, IParameterSymbol> TargetConstructorParams => _targetConstructorParams;
+
+    public FrozenSet<string> IgnoredProperties => _ignoredProperties;
+
+    public FrozenSet<string> IncorrectIgnoredProperties => _incorrectIgnoredProperties;
+
+    public FrozenSet<string> NotIgnoredReadonlyProperties => _notIgnoredReadonlyProperties;
+
+    public string MethodName => _methodName;
 
     #endregion
 
@@ -67,10 +57,24 @@ internal sealed class AttributeDataModel
     public AttributeDataModel(AttributeData attr)
     {
         _attr = attr ?? throw new ArgumentNullException(nameof(attr));
-        var (correct, incorrect) = GetIgnoredProperties();
+
+        _source = _attr.AttributeClass!.TypeArguments.First();
+        _sourceProperties = GetProperties(_source);
+        _target = _attr.AttributeClass!.TypeArguments.Last();
+        _targetProperties = GetProperties(_target);
+        _targetConstructorParams = _target.GetMembers()
+            .OfType<IMethodSymbol>()
+            .Where(x => x.MethodKind == MethodKind.Constructor && x.DeclaredAccessibility == Accessibility.Public)
+            .Select(x => x.Parameters)
+            .OrderBy(x => x.Length)
+            .First()
+            .ToFrozenDictionary(x => x.Name, y => y, StringComparer.Ordinal);
+
+        var (correct, incorrect) = GetIgnoredProperties(_attr, _target);
         _ignoredProperties = correct.ToFrozenSet(StringComparer.Ordinal);
         _incorrectIgnoredProperties = incorrect.ToFrozenSet(StringComparer.Ordinal);
-        _methodName = GetMethodName();
+        _methodName = GetMethodName(_attr);
+        _notIgnoredReadonlyProperties = GetNotIgnoredReadonlyProperties(_target, _ignoredProperties);
     }
 
     #endregion
@@ -79,16 +83,16 @@ internal sealed class AttributeDataModel
 
     public string? GetMethodNameIfInvalid()
     {        
-        return _methodNameRegex.IsMatch(_methodName) ? null : _methodName;
+        return _methodNameRegex.IsMatch(MethodName) ? null : MethodName;
     }
 
     #endregion
 
     #region helpers
 
-    private string GetMethodName()
+    private static string GetMethodName(AttributeData attr)
     {
-        var namedArgument = _attr.NamedArguments
+        var namedArgument = attr.NamedArguments
             .FirstOrDefault(x => RegistrationAttributeGeneration.MethodNamePropertyName.Equals(x.Key, StringComparison.Ordinal));
 
         if (namedArgument.Value.Value is string methodName && !string.IsNullOrWhiteSpace(methodName))
@@ -99,12 +103,12 @@ internal sealed class AttributeDataModel
         return RegistrationAttributeGeneration.DefaultMethodName;
     }
 
-    private (HashSet<string>, HashSet<string>) GetIgnoredProperties()
+    private static (HashSet<string>, HashSet<string>) GetIgnoredProperties(AttributeData attr, ITypeSymbol target)
     {
         var correct = new HashSet<string>();
         var incorrect = new HashSet<string>();
 
-        var namedArgument = _attr.NamedArguments
+        var namedArgument = attr.NamedArguments
             .FirstOrDefault(x => RegistrationAttributeGeneration.IgnoredPropertiesPropertyName.Equals(x.Key, StringComparison.Ordinal));
 
         if (namedArgument.Value.Kind == TypedConstantKind.Array && !namedArgument.Value.Values.IsDefaultOrEmpty)
@@ -113,7 +117,7 @@ internal sealed class AttributeDataModel
             {
                 if (tc.Value is string v && !string.IsNullOrWhiteSpace(v))
                 {
-                    if (ExistsInTraget(v))
+                    if (ExistsInTarget(target, v))
                     {
                         correct.Add(v);
                     }
@@ -128,11 +132,34 @@ internal sealed class AttributeDataModel
         return (correct, incorrect);
     }
 
-    private bool ExistsInTraget(string prop)
+    private static bool ExistsInTarget(ITypeSymbol target, string prop)
     {
-        var targetProps = Target.GetMembers().OfType<IPropertySymbol>();
+        var targetProps = target.GetMembers().OfType<IPropertySymbol>();
         return targetProps.Any(p => string.Equals(p.Name, prop, StringComparison.Ordinal));
     }
+
+    private static FrozenSet<string> GetNotIgnoredReadonlyProperties(ITypeSymbol target, FrozenSet<string> ignoredProperties)
+    {
+        return target.GetMembers()
+            .OfType<IPropertySymbol>()
+            .Where(p => !p.IsStatic && 
+                         p.DeclaredAccessibility == Accessibility.Public && 
+                         p.IsReadOnly && 
+                         !ignoredProperties.Contains(p.Name))
+            .Select(p => p.Name)
+            .ToFrozenSet(StringComparer.Ordinal);
+    }
+
+    private static FrozenDictionary<string, IPropertySymbol> GetProperties(ITypeSymbol type)
+    {
+        return type.GetMembers()
+            .OfType<IPropertySymbol>()
+            .Where(p => !p.IsStatic &&                         
+                        p.DeclaredAccessibility == Accessibility.Public &&
+                        !p.IsReadOnly)
+            .ToFrozenDictionary(x => x.Name, y => y, StringComparer.Ordinal);
+    }
+
 
     #endregion
 }

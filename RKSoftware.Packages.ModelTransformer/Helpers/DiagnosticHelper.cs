@@ -10,7 +10,7 @@ internal static class DiagnosticHelper
 
     #endregion
 
-    public static void CreateInvalidIgnoredPropertyNameWarning(SourceProductionContext context, ITypeSymbol sourceType, ITypeSymbol targetType, IEnumerable<string> props)
+    public static void CreateInvalidPropertyNameWarning(SourceProductionContext context, ITypeSymbol sourceType, ITypeSymbol targetType, IEnumerable<string> props)
     {
         var descriptor = new DiagnosticDescriptor(
                         id: $"{_idProfix}001",
@@ -23,7 +23,7 @@ internal static class DiagnosticHelper
         context.ReportDiagnostic(diagnostic);
     }
 
-    public static void CreateInvalidIgnoredMethodNameError(SourceProductionContext context, ITypeSymbol sourceType, ITypeSymbol targetType, string methodName)
+    public static void CreateInvalidMethodNameError(SourceProductionContext context, ITypeSymbol sourceType, ITypeSymbol targetType, string methodName)
     {
         var descriptor = new DiagnosticDescriptor(
                         id: $"{_idProfix}002",
@@ -33,6 +33,19 @@ internal static class DiagnosticHelper
                         DiagnosticSeverity.Error,
                         isEnabledByDefault: true);
         var diagnostic = Diagnostic.Create(descriptor, Location.None, sourceType.Name, targetType.Name, methodName);
+        context.ReportDiagnostic(diagnostic);
+    }
+
+    public static void CreateReadonlyPropertyMustBeIgnoredWarning(SourceProductionContext context, ITypeSymbol sourceType, ITypeSymbol targetType, IEnumerable<string> props)
+    {
+        var descriptor = new DiagnosticDescriptor(
+                        id: $"{_idProfix}003",
+                        title: "Readonly property must be ignored",
+                        messageFormat: "Readonly properties from '{1}' must be added to IgnoredProperties in <{0},{1}>: {2}",
+                        category: "Usage",
+                        DiagnosticSeverity.Warning,
+                        isEnabledByDefault: true);
+        var diagnostic = Diagnostic.Create(descriptor, Location.None, sourceType.Name, targetType.Name, string.Join(", ", props));
         context.ReportDiagnostic(diagnostic);
     }
 }
