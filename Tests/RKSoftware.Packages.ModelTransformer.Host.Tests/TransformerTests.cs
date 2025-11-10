@@ -81,7 +81,8 @@ public class TransformerTests
             IntOptional = 30,
             StringRequired = "johndoe",
             IntRequired = 42,
-            StringIgnored = "Ignore me"
+            StringIgnored = "Ignore me",
+            NullableStringToString = "NullableValue"
         };
 
         var record = domain.ToRecord();
@@ -101,5 +102,7 @@ public class TransformerTests
         Assert.False(string.IsNullOrEmpty(record.StringMissed));
 
         Assert.True(record.IntMissed.HasValue);
+
+        Assert.Equal(domain.NullableStringToString, record.NullableStringToString);
     }
 }

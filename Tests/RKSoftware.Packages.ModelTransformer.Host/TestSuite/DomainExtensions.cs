@@ -43,4 +43,9 @@ public static partial class DomainExtensions
     {
         return 42;
     }
+
+    private static partial string ToRecordModelNullableStringToString(Domain source)
+    {
+        return source.NullableStringToString ?? string.Empty;
+    }
 }

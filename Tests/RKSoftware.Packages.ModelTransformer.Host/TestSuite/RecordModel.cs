@@ -1,6 +1,6 @@
 ﻿namespace RKSoftware.Packages.ModelTransformer.Host.TestSuite;
 
-public record class RecordModel(string StringRequired, int IntRequired)
+public record class RecordModel(string StringRequired, int IntRequired, string NullableStringToString)
 {
     public string? StringOptional { get; init; }
 
