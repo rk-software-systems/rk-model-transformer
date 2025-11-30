@@ -15,10 +15,12 @@ public class TransformerTests
             IntRequired = 42,
             StringIgnored = "Ignore me",
             StringToInt = "123",
-            NullableStringToString = "NullableValue"
+            NullableStringToString = "NullableValue",
+            IntToNullableInt = 55,
+            StringRequiredToNullableString = "RequiredToNullable"
         };
 
-        var viewModel = domain.Transform();
+        var viewModel = domain.Transform((ViewModel?)null);
 
         Assert.Equal(domain.StringOptional, viewModel.StringOptional);
 
@@ -39,6 +41,10 @@ public class TransformerTests
         Assert.Equal(123, viewModel.StringToInt);
 
         Assert.Equal(domain.NullableStringToString, viewModel.NullableStringToString);
+
+        Assert.Equal(domain.StringRequiredToNullableString, viewModel.StringRequiredToNullableString);
+
+        Assert.Equal(domain.IntToNullableInt, viewModel.IntToNullableInt);
     }
 
     [Fact]
@@ -50,10 +56,12 @@ public class TransformerTests
             IntOptional = 30,
             StringRequired = "johndoe",
             IntRequired = 42,
-            StringIgnored = "Ignore me"
+            StringIgnored = "Ignore me",
+            IntToNullableInt = 55,
+            StringRequiredToNullableString = "RequiredToNullable"
         };
 
-        var dto = domain.ToDto();
+        var dto = domain.Transform((Dto?)null);
 
         Assert.Equal(domain.StringOptional, dto.StringOptional);
 
@@ -70,6 +78,10 @@ public class TransformerTests
         Assert.False(string.IsNullOrEmpty(dto.StringMissed));
 
         Assert.True(dto.IntMissed.HasValue);
+
+        Assert.Equal(domain.StringRequiredToNullableString, dto.StringRequiredToNullableString);
+
+        Assert.Equal(domain.IntToNullableInt, dto.IntToNullableInt);
     }
 
     [Fact]
@@ -82,10 +94,12 @@ public class TransformerTests
             StringRequired = "johndoe",
             IntRequired = 42,
             StringIgnored = "Ignore me",
-            NullableStringToString = "NullableValue"
+            NullableStringToString = "NullableValue",
+            IntToNullableInt = 55,
+            StringRequiredToNullableString = "RequiredToNullable"
         };
 
-        var record = domain.ToRecord();
+        var record = domain.Transform((RecordModel?)null);
 
         Assert.Equal(domain.StringOptional, record.StringOptional);
 
@@ -104,5 +118,9 @@ public class TransformerTests
         Assert.True(record.IntMissed.HasValue);
 
         Assert.Equal(domain.NullableStringToString, record.NullableStringToString);
+
+        Assert.Equal(domain.StringRequiredToNullableString, record.StringRequiredToNullableString);
+
+        Assert.Equal(domain.IntToNullableInt, record.IntToNullableInt);
     }
 }

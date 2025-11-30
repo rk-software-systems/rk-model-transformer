@@ -1,5 +1,6 @@
 ﻿using System.Collections.Frozen;
 using Microsoft.CodeAnalysis;
+using RKSoftware.Packages.ModelTransformer.Helpers;
 using RKSoftware.Packages.ModelTransformer.Models;
 
 namespace RKSoftware.Packages.ModelTransformer.Generations;
@@ -12,6 +13,7 @@ internal static class ModelExtensionGeneration
     private static readonly string _indent2 = new('\t', 2);
     private static readonly string _indent3 = new('\t', 3);
     private static readonly string _indent4 = new('\t', 4);
+    private static readonly string _indent5 = new('\t', 5);
 
     public static string GenerateExtensionClass(string hostNamespace, string sourceName, List<string> methods)
     {
@@ -39,9 +41,10 @@ namespace {hostNamespace}
     public static string GenerateExtensionMethod(AttributeDataModel attr)
     {
         var variableCreationCode = string.Empty;
-        var methodsCode = string.Empty;
-        var variableMappingCode = string.Empty;
+        var methodsCode = string.Empty;        
         var constructorVariableMappingCode = string.Empty;
+        var postConstructorVariableMappingCode = string.Empty;
+        var variableMappingCode = string.Empty;
 
         var mappings = GeneratePropertyMappings(attr);
 
@@ -55,16 +58,6 @@ namespace {hostNamespace}
             if (variableCreations.Count > 0)
             {
                 variableCreationCode = $"{_newLine}{string.Join($"{_newLine}{_newLine}", variableCreations)}{_newLine}";
-            }                           
-
-            var variableMappings = mappings
-                .Select(x => x.VariableMappingCode)
-                .Where(x => !string.IsNullOrWhiteSpace(x))
-                .ToList();
-
-            if (variableMappings.Count > 0)
-            {
-                variableMappingCode = string.Join($",{_newLine}", variableMappings);
             }
 
             var constructorVariableMappings = mappings
@@ -75,6 +68,26 @@ namespace {hostNamespace}
             if (constructorVariableMappings.Count > 0)
             {
                 constructorVariableMappingCode = $"{_newLine}{string.Join($",{_newLine}", constructorVariableMappings)}";
+            }
+
+            var postConstructorVariableMappings = mappings
+                .Select(x => x.PostConstructorVariableMappingCode)
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .ToList();
+
+            if (postConstructorVariableMappings.Count > 0)
+            {
+                postConstructorVariableMappingCode = string.Join($",{_newLine}", postConstructorVariableMappings);
+            }
+
+            var variableMappings = mappings
+                .Select(x => x.VariableMappingCode)
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .ToList();
+
+            if (variableMappings.Count > 0)
+            {
+                variableMappingCode = string.Join($"{_newLine}", variableMappings);
             }
 
             var methods = mappings
@@ -91,17 +104,24 @@ namespace {hostNamespace}
         var str = $@"
 {_indent2}#region to {attr.Target.Name}
 
-{_indent2}public static {attr.Target.ToDisplayString()} {attr.MethodName}(this {attr.Source.ToDisplayString()} source)
+{_indent2}public static {attr.Target.ToDisplayString()} Transform (this {attr.Source.ToDisplayString()} source, {attr.Target.ToDisplayString()}? target = null)
 {_indent2}{{
 {_indent3}if (source == null) 
 {_indent3}{{
 {_indent4}throw new System.ArgumentNullException(nameof(source));
 {_indent3}}}
 {variableCreationCode}
-{_indent3}var target = new {attr.Target.ToDisplayString()} ({constructorVariableMappingCode})
+{_indent3}if (target == null)
 {_indent3}{{
-{variableMappingCode}
-{_indent3}}};
+{_indent4}target = new {attr.Target.ToDisplayString()} ({constructorVariableMappingCode})
+{_indent4}{{
+{postConstructorVariableMappingCode}
+{_indent4}}};
+{_indent3}}}
+{_indent3}else
+{_indent3}{{
+{ variableMappingCode}
+{_indent3}}}
 {_indent3}return target;
 {_indent2}}}
 {methodsCode}
@@ -127,7 +147,7 @@ namespace {hostNamespace}
             if (!isIgnored)
             {
                 if (attr.SourceProperties.TryGetValue(targetProp.Key, out sourceProp) &&
-                   !sourceProp.Type.Equals(targetProp.Value.Type, SymbolEqualityComparer.IncludeNullability))
+                    PropertySymbolHelper.CanNotConvertType(sourceProp, targetProp.Value))
                 {
                     sourceProp = null;
                 }
@@ -137,6 +157,8 @@ namespace {hostNamespace}
             CreateVariableCreationCode(mapping, isIgnored, sourceProp);
 
             CreateConstructorCode(mapping, isIgnored, constructorParams);
+
+            CreateVariableMappingCode(mapping, isIgnored);
 
             CreateMethodCode(mapping, isIgnored, targetProp.Value, sourceProp, attr);
 
@@ -168,11 +190,19 @@ namespace {hostNamespace}
     {
         if (constructorParams.TryGetValue(mapping.PropertyName, out _))
         {
-            mapping.ConstructorVariableMappingCode = $@"{_indent4}{mapping.PropertyName} : {(isIgnored ? "default" : mapping.VariableName)}";
+            mapping.ConstructorVariableMappingCode = $@"{_indent5}{mapping.PropertyName} : {(isIgnored ? "default" : mapping.VariableName)}";
         }
         else
         {
-            mapping.VariableMappingCode = $@"{_indent4}{mapping.PropertyName} = {(isIgnored ? "default" : mapping.VariableName)}";
+            mapping.PostConstructorVariableMappingCode = $@"{_indent5}{mapping.PropertyName} = {(isIgnored ? "default" : mapping.VariableName)}";
+        }
+    }
+
+    private static void CreateVariableMappingCode(PropertyMappingModel mapping, bool isIgnored)
+    {
+        if (!isIgnored && !mapping.IsReadonly)
+        {
+            mapping.VariableMappingCode = $@"{_indent4}target.{mapping.PropertyName} = {mapping.VariableName};";
         }
     }
 

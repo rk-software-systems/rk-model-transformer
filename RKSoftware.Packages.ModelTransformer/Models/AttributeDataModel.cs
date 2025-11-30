@@ -1,5 +1,4 @@
 ﻿using System.Collections.Frozen;
-using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
 using RKSoftware.Packages.ModelTransformer.Generations;
 
@@ -7,13 +6,6 @@ namespace RKSoftware.Packages.ModelTransformer.Models;
 
 internal sealed class AttributeDataModel
 {
-    #region constants
-
-    private static readonly Regex _methodNameRegex = new(@"^[A-Za-z_][A-Za-z0-9_]*$");
-
-    #endregion
-
-
     #region fields
 
     private readonly AttributeData _attr;
@@ -25,7 +17,6 @@ internal sealed class AttributeDataModel
     private readonly FrozenSet<string> _ignoredProperties;
     private readonly FrozenSet<string> _incorrectIgnoredProperties;
     private readonly FrozenSet<string> _notIgnoredReadonlyProperties;
-    private readonly string _methodName;
     #endregion
 
     #region props
@@ -47,8 +38,6 @@ internal sealed class AttributeDataModel
     public FrozenSet<string> IncorrectIgnoredProperties => _incorrectIgnoredProperties;
 
     public FrozenSet<string> NotIgnoredReadonlyProperties => _notIgnoredReadonlyProperties;
-
-    public string MethodName => _methodName;
 
     #endregion
 
@@ -73,35 +62,12 @@ internal sealed class AttributeDataModel
         var (correct, incorrect) = GetIgnoredProperties(_attr, _target);
         _ignoredProperties = correct.ToFrozenSet(StringComparer.Ordinal);
         _incorrectIgnoredProperties = incorrect.ToFrozenSet(StringComparer.Ordinal);
-        _methodName = GetMethodName(_attr);
         _notIgnoredReadonlyProperties = GetNotIgnoredReadonlyProperties(_target, _ignoredProperties);
     }
 
     #endregion
 
-    #region methods
-
-    public string? GetMethodNameIfInvalid()
-    {        
-        return _methodNameRegex.IsMatch(MethodName) ? null : MethodName;
-    }
-
-    #endregion
-
     #region helpers
-
-    private static string GetMethodName(AttributeData attr)
-    {
-        var namedArgument = attr.NamedArguments
-            .FirstOrDefault(x => RegistrationAttributeGeneration.MethodNamePropertyName.Equals(x.Key, StringComparison.Ordinal));
-
-        if (namedArgument.Value.Value is string methodName && !string.IsNullOrWhiteSpace(methodName))
-        {
-            return methodName;
-        }
-
-        return RegistrationAttributeGeneration.DefaultMethodName;
-    }
 
     private static (HashSet<string>, HashSet<string>) GetIgnoredProperties(AttributeData attr, ITypeSymbol target)
     {

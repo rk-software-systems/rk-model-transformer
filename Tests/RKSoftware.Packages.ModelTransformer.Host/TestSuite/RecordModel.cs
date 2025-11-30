@@ -15,4 +15,8 @@ public record class RecordModel(string StringRequired, int IntRequired, string N
     public int? IntMissed { get; set; }
 
     public string? StringReadonly { get; }
+
+    public string? StringRequiredToNullableString { get; set; }
+
+    public int? IntToNullableInt { get; set; }
 }

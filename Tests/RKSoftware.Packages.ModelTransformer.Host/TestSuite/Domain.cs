@@ -19,4 +19,8 @@ public class Domain
     public string? StringToInt { get; set; }
 
     public string? NullableStringToString { get; set; }
+
+    public required string StringRequiredToNullableString { get; set; }
+
+    public int IntToNullableInt { get; set; }
 }

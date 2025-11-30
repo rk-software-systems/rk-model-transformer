@@ -15,11 +15,15 @@ internal sealed class PropertyMappingModel
 
     public string VariableCreationCode { get; set; } = string.Empty;
 
-    public string VariableMappingCode { get; set; } = string.Empty;
-
     public string ConstructorVariableMappingCode { get; set; } = string.Empty;
 
+    public string PostConstructorVariableMappingCode { get; set; } = string.Empty;
+
+    public string VariableMappingCode { get; set; } = string.Empty;
+
     public string MethodCode { get; set; } = string.Empty;
+
+    public bool IsReadonly { get; }
 
     #region ctor
 
@@ -29,7 +33,7 @@ internal sealed class PropertyMappingModel
         VariableName = StringHelper.LowerCaseFirstLetter(targetProperty.Name);
         DefaultMethodName = $"To{target.Name}{targetProperty.Name}Default";
         MethodName = $"To{target.Name}{targetProperty.Name}";
-
+        IsReadonly = targetProperty.SetMethod == null || targetProperty.SetMethod.IsInitOnly;
     }
 
     #endregion

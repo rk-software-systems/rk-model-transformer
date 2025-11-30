@@ -105,13 +105,6 @@ public class ModelTransformerIncrementalGenerator : IIncrementalGenerator
                         DiagnosticHelper.CreateInvalidPropertyNameWarning(context, attr.Source, attr.Target, incorrectIgnoredProperties);
                     }
 
-                    var invalidMethodName = attr.GetMethodNameIfInvalid();
-                    if (invalidMethodName != null)
-                    {
-                        DiagnosticHelper.CreateInvalidMethodNameError(context, attr.Source, attr.Target, invalidMethodName);
-                        continue;
-                    }
-
                     var notIgnoredReadonlyProperties = attr.NotIgnoredReadonlyProperties;
                     if (notIgnoredReadonlyProperties.Count > 0)
                     {

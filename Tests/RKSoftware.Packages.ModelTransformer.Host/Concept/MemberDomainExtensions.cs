@@ -4,7 +4,7 @@ public static partial class MemberDomainExtensions
 {
     #region to ViewModel
 
-    public static MemberViewModel ToViewModel(this MemberDomain source)
+    public static MemberViewModel Transform(this MemberDomain source, MemberViewModel? target = null)
     {
         ArgumentNullException.ThrowIfNull(source, nameof(source));
 
@@ -14,11 +14,19 @@ public static partial class MemberDomainExtensions
         var userName = ToViewModelUserNameDefault(source);
         ToViewModelUserName(source, ref userName);
 
-        var target = new MemberViewModel
+        if (target == null)
         {
-            MemberId = memberId,
-            UserName = userName
-        };
+            target = new MemberViewModel
+            {
+                MemberId = memberId,
+                UserName = userName
+            };
+        } 
+        else
+        {
+            target.MemberId = memberId;
+            target.UserName = userName;
+        }
 
         return target;
     }
@@ -41,7 +49,7 @@ public static partial class MemberDomainExtensions
 
     #region to Dto
 
-    public static MemberDto ToDto(this MemberDomain source)
+    public static MemberDto Transform(this MemberDomain source, MemberDto? target = null)
     {
         ArgumentNullException.ThrowIfNull(source, nameof(source));
 
@@ -51,11 +59,20 @@ public static partial class MemberDomainExtensions
         var userName = ToDtoUserNameDefault(source);
         ToDtoUserName(source, ref userName);
 
-        var target = new MemberDto
+        if (target == null)
         {
-            MemberId = memberId,
-            UserName = userName
-        };
+            target = new MemberDto
+            {
+                MemberId = memberId,
+                UserName = userName
+            };
+        } 
+        else
+        {
+            target.MemberId = memberId;
+            target.UserName = userName;
+        }
+
 
         return target;
     }

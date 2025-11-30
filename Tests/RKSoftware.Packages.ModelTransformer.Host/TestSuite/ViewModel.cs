@@ -23,4 +23,8 @@ public class ViewModel
     public int? StringToInt { get; set; }
 
     public required string NullableStringToString { get; set; }
+
+    public string? StringRequiredToNullableString { get; set; }
+
+    public int? IntToNullableInt { get; set; }
 }
