@@ -1,5 +1,8 @@
 [*.cs]
 
+# CA1002: Do not expose generic lists
+dotnet_diagnostic.CA1002.severity = none
+
 # CA1515: Consider making public types internal
 dotnet_diagnostic.CA1515.severity = none
 
@@ -11,6 +14,9 @@ dotnet_diagnostic.CA1822.severity = none
 
 # CA2007: Consider calling ConfigureAwait on the awaited task
 dotnet_diagnostic.CA2007.severity = none
+
+# CA2227: Collection properties should be read only
+dotnet_diagnostic.CA2227.severity = none
 
 vsspell_ignored_words_2BC58653-30FB-478C-B621-05DB2A644117 = Dto|Nullable
 

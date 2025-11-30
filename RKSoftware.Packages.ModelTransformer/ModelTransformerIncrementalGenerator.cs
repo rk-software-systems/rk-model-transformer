@@ -75,8 +75,7 @@ public class ModelTransformerIncrementalGenerator : IIncrementalGenerator
                 {
                     var attr = new AttributeDataModel(attributeData);
                     registrationModel.Attributes.Add(attr);
-                }
-                
+                }                
             }
 
             return registrationModel.Attributes.Count > 0 ? registrationModel : null;
@@ -91,13 +90,13 @@ public class ModelTransformerIncrementalGenerator : IIncrementalGenerator
         if (tr != null)
         {
             var groupedBySource = tr.Attributes
-                .GroupBy(a => a.Source.Name)
-                .ToList();
+                .GroupBy(a =>  a.Source.OriginalDefinition.ToDisplayString())
+                .ToDictionary(x => x.Key, y => y.ToList());
 
             foreach (var group in groupedBySource)
             {
                 var exMethods = new List<string>();
-                foreach (var attr in group)
+                foreach (var attr in group.Value)
                 {
                     var incorrectIgnoredProperties = attr.IncorrectIgnoredProperties;
                     if (incorrectIgnoredProperties.Count > 0)
@@ -111,13 +110,15 @@ public class ModelTransformerIncrementalGenerator : IIncrementalGenerator
                         DiagnosticHelper.CreateReadonlyPropertyMustBeIgnoredWarning(context, attr.Source, attr.Target, notIgnoredReadonlyProperties);
                     }
 
-                    var exMethod = ModelExtensionGeneration.GenerateExtensionMethod(attr);
+                    var exMethod = ModelExtensionGeneration.GenerateExtensionMethod(attr, groupedBySource);
                     exMethods.Add(exMethod);
                 }
 
-                var exClass = ModelExtensionGeneration.GenerateExtensionClass(tr.HostNamespace, group.Key, exMethods);
+                var sourceName = group.Value.First().Source.Name;
 
-                var fileName = $"{group.Key}Extensions.g.cs";
+                var exClass = ModelExtensionGeneration.GenerateExtensionClass(tr.HostNamespace, sourceName, exMethods);
+
+                var fileName = $"{sourceName}Extensions.g.cs";
 
                 context.AddSource(fileName, SourceText.From(exClass, Encoding.UTF8));
             }

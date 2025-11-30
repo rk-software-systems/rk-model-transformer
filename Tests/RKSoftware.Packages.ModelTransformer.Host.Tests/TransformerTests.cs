@@ -123,4 +123,19 @@ public class TransformerTests
 
         Assert.Equal(domain.IntToNullableInt, record.IntToNullableInt);
     }
+
+    [Fact]
+    public void DomainChildToViewModelChildTransformerTest()
+    {
+        var domainChild = new DomainChild
+        {
+            StringOptional = "Child String",
+            IntOptional = 99
+        };
+        var viewModelChild = domainChild.Transform();
+
+        Assert.Equal(domainChild.StringOptional, viewModelChild.StringOptional);
+
+        Assert.Equal(domainChild.IntOptional, viewModelChild.IntOptional);
+    }
 }

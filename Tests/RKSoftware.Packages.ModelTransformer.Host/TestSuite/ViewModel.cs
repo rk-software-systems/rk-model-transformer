@@ -27,4 +27,8 @@ public class ViewModel
     public string? StringRequiredToNullableString { get; set; }
 
     public int? IntToNullableInt { get; set; }
+
+    public List<string>? ListOfStrings { get; set; }
+
+    public ViewModelChild? Child { get; set; }
 }

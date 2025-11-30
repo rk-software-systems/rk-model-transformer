@@ -2,6 +2,7 @@
 
 namespace RKSoftware.Packages.ModelTransformer.Host.TestSuite;
 
+[ModelTransformerRegistration<DomainChild, ViewModelChild>]
 [ModelTransformerRegistration<Domain, RecordModel>(
     IgnoredProperties = [nameof(ViewModel.StringIgnored), nameof(ViewModel.IntIgnored), nameof(ViewModel.StringReadonly)])]
 [ModelTransformerRegistration<Domain, Dto>(

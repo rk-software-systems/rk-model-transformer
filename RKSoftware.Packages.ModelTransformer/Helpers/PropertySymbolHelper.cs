@@ -20,7 +20,7 @@ internal static class PropertySymbolHelper
         return !isTargetNullable && isSourceNullable;
     }
 
-    private static bool IsNullable(IPropertySymbol prop)
+    public static bool IsNullable(IPropertySymbol prop)
     {
         return prop.Type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T ||
                (prop.Type.IsReferenceType && prop.NullableAnnotation == NullableAnnotation.Annotated);

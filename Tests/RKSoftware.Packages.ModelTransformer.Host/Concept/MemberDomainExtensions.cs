@@ -14,18 +14,23 @@ public static partial class MemberDomainExtensions
         var userName = ToViewModelUserNameDefault(source);
         ToViewModelUserName(source, ref userName);
 
+        var address = ToViewModelAddressDefault(source);
+        ToViewModelAddress(source, ref address);
+
         if (target == null)
         {
             target = new MemberViewModel
             {
                 MemberId = memberId,
-                UserName = userName
+                UserName = userName,
+                Address = address
             };
         } 
         else
         {
             target.MemberId = memberId;
             target.UserName = userName;
+            target.Address = address;
         }
 
         return target;
@@ -44,6 +49,14 @@ public static partial class MemberDomainExtensions
         return source.UserName;
     }
     static partial void ToViewModelUserName(MemberDomain source, ref string userName);
+
+    private static AddressViewModel? ToViewModelAddressDefault(MemberDomain source)
+    {
+        ArgumentNullException.ThrowIfNull(source, nameof(source));
+        return source.Address?.Transform();
+    }
+
+    static partial void ToViewModelAddress(MemberDomain source, ref AddressViewModel? address);
 
     #endregion
 

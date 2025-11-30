@@ -23,4 +23,8 @@ public class Domain
     public required string StringRequiredToNullableString { get; set; }
 
     public int IntToNullableInt { get; set; }
+
+    public List<string>? ListOfStrings { get; set; }
+
+    public DomainChild? Child { get; set; }
 }

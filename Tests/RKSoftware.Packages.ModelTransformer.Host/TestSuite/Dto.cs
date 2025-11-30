@@ -23,4 +23,6 @@ public class Dto
     public string? StringRequiredToNullableString { get; set; }
 
     public int? IntToNullableInt { get; set; }
+
+    public List<string>? ListOfStrings { get; set; }
 }
