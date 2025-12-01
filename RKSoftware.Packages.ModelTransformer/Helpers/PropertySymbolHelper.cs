@@ -26,6 +26,49 @@ internal static class PropertySymbolHelper
                (prop.Type.IsReferenceType && prop.NullableAnnotation == NullableAnnotation.Annotated);
     }
 
+    public static ITypeSymbol? GetGenericElementType(IPropertySymbol property)
+    {
+        var type = property.Type;
+
+        if (type.SpecialType == SpecialType.System_String)
+        {
+            return null;
+        }
+
+        if (type.IsValueType && type.SpecialType != SpecialType.None)
+        {
+            return null;
+        }
+
+        if (type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T &&
+            type is INamedTypeSymbol nt &&
+            nt.TypeArguments.Length == 1 &&
+            nt.TypeArguments[0].SpecialType != SpecialType.None)
+        {
+            return null;
+        }
+
+        if (type is IArrayTypeSymbol arrayType)
+        {
+            return arrayType.ElementType;
+        }
+
+        if (type is INamedTypeSymbol namedType && namedType.IsGenericType)
+        {
+            if (namedType.TypeArguments.Length != 1)
+            {
+                return null;
+            }
+
+            if (namedType.AllInterfaces.Any(i => i.OriginalDefinition.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T))
+            {
+                return namedType.TypeArguments[0];
+            }
+        }
+
+        return null;
+    }
+
     private static ITypeSymbol GetNonNullable(ITypeSymbol type)
     {
         if (type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T && type is INamedTypeSymbol named)

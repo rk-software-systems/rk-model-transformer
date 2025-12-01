@@ -17,13 +17,17 @@ public static partial class MemberDomainExtensions
         var address = ToViewModelAddressDefault(source);
         ToViewModelAddress(source, ref address);
 
+        var addresses = ToViewModelAddressesDefault(source);
+        ToViewModelAddresses(source, ref addresses);
+
         if (target == null)
         {
             target = new MemberViewModel
             {
                 MemberId = memberId,
                 UserName = userName,
-                Address = address
+                Address = address,
+                Addresses = addresses
             };
         } 
         else
@@ -31,6 +35,7 @@ public static partial class MemberDomainExtensions
             target.MemberId = memberId;
             target.UserName = userName;
             target.Address = address;
+            target.Addresses = addresses;
         }
 
         return target;
@@ -55,8 +60,14 @@ public static partial class MemberDomainExtensions
         ArgumentNullException.ThrowIfNull(source, nameof(source));
         return source.Address?.Transform();
     }
-
     static partial void ToViewModelAddress(MemberDomain source, ref AddressViewModel? address);
+
+    private static List<AddressViewModel>? ToViewModelAddressesDefault(MemberDomain source)
+    {
+        ArgumentNullException.ThrowIfNull(source, nameof(source));
+        return source.Addresses != null ? [.. source.Addresses.Select(x => x.Transform())] : default;
+    }
+    static partial void ToViewModelAddresses(MemberDomain source, ref List<AddressViewModel>? address);
 
     #endregion
 

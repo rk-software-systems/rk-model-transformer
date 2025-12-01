@@ -27,4 +27,6 @@ public class Domain
     public List<string>? ListOfStrings { get; set; }
 
     public DomainChild? Child { get; set; }
+
+    public List<DomainChild>? Children { get; set; }
 }

@@ -7,4 +7,6 @@ public class MemberViewModel
     public required string UserName { get; set; }
 
     public AddressViewModel? Address { get; set; }
+
+    public List<AddressViewModel>? Addresses { get; set; }
 }

@@ -31,4 +31,6 @@ public class ViewModel
     public List<string>? ListOfStrings { get; set; }
 
     public ViewModelChild? Child { get; set; }
+
+    public List<ViewModelChild>? Children { get; set; }
 }

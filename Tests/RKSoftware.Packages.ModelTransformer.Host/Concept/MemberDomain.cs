@@ -7,4 +7,6 @@ public class MemberDomain
     public required string UserName { get; set; }
 
     public AddressDomain? Address { get; set; }
+
+    public List<AddressDomain>? Addresses { get; set; }
 }

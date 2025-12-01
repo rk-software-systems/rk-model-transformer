@@ -145,6 +145,7 @@ namespace {hostNamespace}
         {
             IPropertySymbol? sourceProp = null;
             var isRegistered = false;
+            var isGenrericEnumerable = false;
             var isIgnored = attr.IgnoredProperties.TryGetValue(targetProp.Key, out _);
             if (!isIgnored)
             {
@@ -158,7 +159,18 @@ namespace {hostNamespace}
                     }
                     else
                     {
-                        sourceProp = null;
+                        var sourceElementType = PropertySymbolHelper.GetGenericElementType(sourceProp);
+                        var targetElementType = PropertySymbolHelper.GetGenericElementType(targetProp.Value); 
+                        if(sourceElementType != null && targetElementType != null &&
+                           dic.TryGetValue(sourceElementType.OriginalDefinition.ToDisplayString(), out var complexElementTargets) &&
+                           complexElementTargets.Any(x => SymbolEqualityComparer.Default.Equals(x.Target, targetElementType)))
+                        {
+                            isGenrericEnumerable = true;
+                        }
+                        else
+                        {
+                            sourceProp = null;
+                        }                        
                     }
                 }
             }
@@ -176,7 +188,7 @@ namespace {hostNamespace}
             {
                 CreateVariableMappingCode(mapping);
 
-                CreateMethodCode(mapping, isRegistered, targetProp.Value, sourceProp, attr);
+                CreateMethodCode(mapping, isRegistered, isGenrericEnumerable, targetProp.Value, sourceProp, attr);
             }
 
             mappings.Add(mapping);
@@ -223,22 +235,28 @@ namespace {hostNamespace}
     private static void CreateMethodCode(
         PropertyMappingModel mapping,
         bool isRegistered,
+        bool isGenrericEnumerable,
         IPropertySymbol targetProp,
         IPropertySymbol? sourceProp,
         AttributeDataModel attr)
     {
         if (sourceProp != null)
         {
-            var sourcePropName = sourceProp.Name;
+            var code = $"source.{sourceProp.Name}";
             if (isRegistered)
             {
-                sourcePropName = $"{sourcePropName}{(PropertySymbolHelper.IsNullable(sourceProp) ? "?" : "")}.Transform()";
+                code = $"source.{sourceProp.Name}{(PropertySymbolHelper.IsNullable(sourceProp) ? "?" : "")}.Transform()";
+            } 
+            else if (isGenrericEnumerable)
+            {
+                var str = $"[.. source.{sourceProp.Name}.Select(x => x.Transform())]";
+                code = PropertySymbolHelper.IsNullable(sourceProp) ? $"source.{sourceProp.Name} != null ? {str} : default" : str;
             }
 
             mapping.MethodCode =
-$@"{_indent2}private static {targetProp.Type.ToDisplayString()} {mapping.DefaultMethodName}({attr.Source.ToDisplayString()} source)
+    $@"{_indent2}private static {targetProp.Type.ToDisplayString()} {mapping.DefaultMethodName}({attr.Source.ToDisplayString()} source)
 {_indent2}{{
-{_indent3}return source.{sourcePropName};
+{_indent3}return {code};
 {_indent2}}}
 {_indent2}static partial void {mapping.MethodName}({attr.Source.ToDisplayString()} source, ref {targetProp.Type.ToDisplayString()} target);";
         }
