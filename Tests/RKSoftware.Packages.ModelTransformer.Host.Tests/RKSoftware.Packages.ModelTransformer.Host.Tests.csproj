@@ -26,6 +26,4 @@
 
   <ItemGroup>
     <Using Include="Xunit" />
-  </ItemGroup>
-
-</Project>
+  </ItemGroup></Project>

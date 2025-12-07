@@ -3,7 +3,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using RKSoftware.Packages.ModelTransformer.Generations;
-using RKSoftware.Packages.ModelTransformer.Helpers;
+using RKSoftware.Packages.ModelTransformer.Extensions;
 using RKSoftware.Packages.ModelTransformer.Models;
 
 namespace RKSoftware.Packages.ModelTransformer;
@@ -101,13 +101,13 @@ public class ModelTransformerIncrementalGenerator : IIncrementalGenerator
                     var incorrectIgnoredProperties = attr.IncorrectIgnoredProperties;
                     if (incorrectIgnoredProperties.Count > 0)
                     {
-                        DiagnosticHelper.CreateInvalidPropertyNameWarning(context, attr.Source, attr.Target, incorrectIgnoredProperties);
+                        context.CreateInvalidPropertyNameWarning(attr.Source, attr.Target, incorrectIgnoredProperties);
                     }
 
                     var notIgnoredReadonlyProperties = attr.NotIgnoredReadonlyProperties;
                     if (notIgnoredReadonlyProperties.Count > 0)
                     {
-                        DiagnosticHelper.CreateReadonlyPropertyMustBeIgnoredWarning(context, attr.Source, attr.Target, notIgnoredReadonlyProperties);
+                        context.CreateReadonlyPropertyMustBeIgnoredWarning(attr.Source, attr.Target, notIgnoredReadonlyProperties);
                     }
 
                     var exMethod = ModelExtensionGeneration.GenerateExtensionMethod(attr, groupedBySource);
@@ -118,7 +118,7 @@ public class ModelTransformerIncrementalGenerator : IIncrementalGenerator
 
                 var exClass = ModelExtensionGeneration.GenerateExtensionClass(tr.HostNamespace, sourceName, exMethods);
 
-                var fileName = $"{sourceName}Extensions.g.cs";
+                var fileName = $"{tr.HostNamespace}.{sourceName}Extensions.g.cs";
 
                 context.AddSource(fileName, SourceText.From(exClass, Encoding.UTF8));
             }

@@ -1,5 +1,4 @@
 ﻿using System.Collections.Frozen;
-using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using RKSoftware.Packages.ModelTransformer.Helpers;
 using RKSoftware.Packages.ModelTransformer.Models;

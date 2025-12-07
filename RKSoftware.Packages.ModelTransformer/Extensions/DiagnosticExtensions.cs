@@ -1,8 +1,8 @@
 ﻿using Microsoft.CodeAnalysis;
 
-namespace RKSoftware.Packages.ModelTransformer.Helpers;
+namespace RKSoftware.Packages.ModelTransformer.Extensions;
 
-internal static class DiagnosticHelper
+internal static class DiagnosticExtensions
 {
     #region constants
 
@@ -10,7 +10,7 @@ internal static class DiagnosticHelper
 
     #endregion
 
-    public static void CreateInvalidPropertyNameWarning(SourceProductionContext context, ITypeSymbol sourceType, ITypeSymbol targetType, IEnumerable<string> props)
+    public static void CreateInvalidPropertyNameWarning(this SourceProductionContext context, ITypeSymbol sourceType, ITypeSymbol targetType, IEnumerable<string> props)
     {
         var descriptor = new DiagnosticDescriptor(
                         id: $"{_idProfix}001",
@@ -23,7 +23,7 @@ internal static class DiagnosticHelper
         context.ReportDiagnostic(diagnostic);
     }
 
-    public static void CreateReadonlyPropertyMustBeIgnoredWarning(SourceProductionContext context, ITypeSymbol sourceType, ITypeSymbol targetType, IEnumerable<string> props)
+    public static void CreateReadonlyPropertyMustBeIgnoredWarning(this SourceProductionContext context, ITypeSymbol sourceType, ITypeSymbol targetType, IEnumerable<string> props)
     {
         var descriptor = new DiagnosticDescriptor(
                         id: $"{_idProfix}002",
