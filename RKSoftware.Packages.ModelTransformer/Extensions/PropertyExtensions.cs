@@ -1,13 +1,13 @@
 ﻿using Microsoft.CodeAnalysis;
 
-namespace RKSoftware.Packages.ModelTransformer.Helpers;
+namespace RKSoftware.Packages.ModelTransformer.Extensions;
 
-internal static class PropertySymbolHelper
+internal static class PropertyExtensions
 {
-    public static bool CanNotConvertType(IPropertySymbol source, IPropertySymbol target)
+    public static bool CanNotConvertType(this IPropertySymbol source, IPropertySymbol target)
     {
-        var sourceTypeNonNullable = GetNonNullable(source.Type);
-        var targetTypeNonNullable = GetNonNullable(target.Type);
+        var sourceTypeNonNullable = source.Type.GetNonNullable();
+        var targetTypeNonNullable = target.Type.GetNonNullable();
 
         if (!sourceTypeNonNullable.Equals(targetTypeNonNullable, SymbolEqualityComparer.Default))
         {
@@ -20,13 +20,13 @@ internal static class PropertySymbolHelper
         return !isTargetNullable && isSourceNullable;
     }
 
-    public static bool IsNullable(IPropertySymbol prop)
+    public static bool IsNullable(this IPropertySymbol prop)
     {
         return prop.Type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T ||
                (prop.Type.IsReferenceType && prop.NullableAnnotation == NullableAnnotation.Annotated);
     }
 
-    public static ITypeSymbol? GetGenericElementType(IPropertySymbol property)
+    public static ITypeSymbol? GetGenericElementType(this IPropertySymbol property)
     {
         var type = property.Type;
 
@@ -69,7 +69,7 @@ internal static class PropertySymbolHelper
         return null;
     }
 
-    private static ITypeSymbol GetNonNullable(ITypeSymbol type)
+    private static ITypeSymbol GetNonNullable(this ITypeSymbol type)
     {
         if (type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T && type is INamedTypeSymbol named)
         {

@@ -1,6 +1,5 @@
-﻿using System.Collections.Frozen;
-using Microsoft.CodeAnalysis;
-using RKSoftware.Packages.ModelTransformer.Helpers;
+﻿using Microsoft.CodeAnalysis;
+using RKSoftware.Packages.ModelTransformer.Extensions;
 using RKSoftware.Packages.ModelTransformer.Models;
 
 namespace RKSoftware.Packages.ModelTransformer.Generations;
@@ -38,7 +37,7 @@ namespace {hostNamespace}
     }
 
 
-    public static string GenerateExtensionMethod(AttributeDataModel attr, Dictionary<string, List<AttributeDataModel>> dic)
+    public static string GenerateExtensionMethod(this SourceProductionContext context, AttributeDataModel attr, Dictionary<string, List<AttributeDataModel>> dic)
     {
         var variableCreationCode = string.Empty;
         var methodsCode = string.Empty;
@@ -46,7 +45,7 @@ namespace {hostNamespace}
         var postConstructorVariableMappingCode = string.Empty;
         var variableMappingCode = string.Empty;
 
-        var mappings = GeneratePropertyMappings(attr, dic);
+        var mappings = GeneratePropertyMappings(context, attr, dic);
 
         if (mappings.Count > 0)
         {
@@ -132,13 +131,11 @@ namespace {hostNamespace}
 
     #region helpers
 
-    private static List<PropertyMappingModel> GeneratePropertyMappings(AttributeDataModel attr, Dictionary<string, List<AttributeDataModel>> dic)
+    private static List<PropertyMappingModel> GeneratePropertyMappings(SourceProductionContext context, AttributeDataModel attr, Dictionary<string, List<AttributeDataModel>> dic)
     {
         var mappings = new List<PropertyMappingModel>();
 
         var targetProps = attr.TargetProperties;
-
-        var constructorParams = attr.TargetConstructorParams;
 
         foreach (var targetProp in targetProps)
         {
@@ -149,7 +146,7 @@ namespace {hostNamespace}
             if (!isIgnored)
             {
                 if (attr.SourceProperties.TryGetValue(targetProp.Key, out sourceProp) &&
-                    PropertySymbolHelper.CanNotConvertType(sourceProp, targetProp.Value))
+                    sourceProp.CanNotConvertType(targetProp.Value))
                 {
                     if (dic.TryGetValue(sourceProp.Type.OriginalDefinition.ToDisplayString(), out var complexTargets) &&
                         complexTargets.Any(x => SymbolEqualityComparer.Default.Equals(x.Target, targetProp.Value.Type)))
@@ -158,9 +155,9 @@ namespace {hostNamespace}
                     }
                     else
                     {
-                        var sourceElementType = PropertySymbolHelper.GetGenericElementType(sourceProp);
-                        var targetElementType = PropertySymbolHelper.GetGenericElementType(targetProp.Value); 
-                        if(sourceElementType != null && targetElementType != null &&
+                        var sourceElementType = sourceProp.GetGenericElementType();
+                        var targetElementType = targetProp.Value.GetGenericElementType();
+                        if (sourceElementType != null && targetElementType != null &&
                            dic.TryGetValue(sourceElementType.OriginalDefinition.ToDisplayString(), out var complexElementTargets) &&
                            complexElementTargets.Any(x => SymbolEqualityComparer.Default.Equals(x.Target, targetElementType)))
                         {
@@ -169,25 +166,49 @@ namespace {hostNamespace}
                         else
                         {
                             sourceProp = null;
-                        }                        
+                        }
                     }
                 }
             }
-            var mapping = new PropertyMappingModel(targetProp.Value, attr.Target);
-
+            var mapping = new PropertyMappingModel(targetProp.Value, attr, isIgnored);
             if (!isIgnored)
             {
-                CreateVariableCreationCode(mapping, sourceProp);
+                if (sourceProp != null)
+                {
+                    mapping.VariableCreationCode = CreateVariableByDefaultMappingMethod(mapping);
+                }
+                else
+                {
+                    mapping.VariableCreationCode = CreateVariableByRequiredMappingMethod(mapping);
+                }
             }
 
-            var variableName = isIgnored ? "default" : mapping.VariableName;
-            CreateConstructorCode(mapping, constructorParams, variableName);
+            if (mapping.IsConstructorParam)
+            {
+                mapping.ConstructorVariableMappingCode = SetVariableInConstructor(mapping);
+            }
+            else
+            {
+                mapping.PostConstructorVariableMappingCode = SetVariablePostConstructor(mapping);
+            }
+
+            if (!mapping.IsReadonly)
+            {
+                mapping.VariableMappingCode = SetVariable(mapping);
+            }
 
             if (!isIgnored)
             {
-                CreateVariableMappingCode(mapping);
-
-                CreateMethodCode(mapping, isRegistered, isGenrericEnumerable, targetProp.Value, sourceProp, attr);
+                if (sourceProp != null)
+                {
+                    var defaultMethod = CreateDefaultMappingMethod(mapping, isRegistered, isGenrericEnumerable, targetProp.Value, sourceProp, attr);
+                    var optionalMethod = CreateOptionalMappingMethodToBeImplemented(mapping, targetProp.Value, attr);
+                    mapping.MethodCode = $"{defaultMethod}{_newLine}{optionalMethod}";
+                }
+                else
+                {
+                    mapping.MethodCode = CreateRequiredMappingMethodToBeImplemented(mapping, targetProp.Value, attr);
+                }
             }
 
             mappings.Add(mapping);
@@ -197,72 +218,75 @@ namespace {hostNamespace}
     }
     #endregion
 
-    private static void CreateVariableCreationCode(PropertyMappingModel mapping, IPropertySymbol? sourceProp)
+    private static string CreateVariableByDefaultMappingMethod(PropertyMappingModel mapping)
     {
-        if (sourceProp != null)
-        {
-            mapping.VariableCreationCode =
+        return
 @$"{_indent3}var {mapping.VariableName} = {mapping.DefaultMethodName}(source);
 {_indent3}{mapping.MethodName}(source, ref {mapping.VariableName});";
-        }
-        else
-        {
-            mapping.VariableCreationCode = @$"{_indent3}var {mapping.VariableName} = {mapping.MethodName}(source);";
-        }
     }
 
-    private static void CreateConstructorCode(PropertyMappingModel mapping, FrozenDictionary<string, IParameterSymbol> constructorParams, string variableName)
+    private static string CreateVariableByRequiredMappingMethod(PropertyMappingModel mapping)
     {
-        if (constructorParams.TryGetValue(mapping.PropertyName, out _))
-        {
-            mapping.ConstructorVariableMappingCode = $@"{_indent5}{mapping.PropertyName} : {variableName}";
-        }
-        else
-        {
-            mapping.PostConstructorVariableMappingCode = $@"{_indent5}{mapping.PropertyName} = {variableName}";
-        }
+        return @$"{_indent3}var {mapping.VariableName} = {mapping.MethodName}(source);";
     }
 
-    private static void CreateVariableMappingCode(PropertyMappingModel mapping)
+    private static string SetVariableInConstructor(PropertyMappingModel mapping)
     {
-        if (!mapping.IsReadonly)
-        {
-            mapping.VariableMappingCode = $@"{_indent4}target.{mapping.PropertyName} = {mapping.VariableName};";
-        }
+        return $@"{_indent5}{mapping.PropertyName} : {mapping.VariableName}";
     }
 
-    private static void CreateMethodCode(
+    private static string SetVariablePostConstructor(PropertyMappingModel mapping)
+    {
+        return  $@"{_indent5}{mapping.PropertyName} = {mapping.VariableName}";        
+    }
+
+    private static string SetVariable(PropertyMappingModel mapping)
+    {        
+        return $@"{_indent4}target.{mapping.PropertyName} = {mapping.VariableName};";        
+    }
+
+    private static string CreateDefaultMappingMethod(
         PropertyMappingModel mapping,
         bool isRegistered,
         bool isGenrericEnumerable,
         IPropertySymbol targetProp,
-        IPropertySymbol? sourceProp,
+        IPropertySymbol sourceProp,
         AttributeDataModel attr)
     {
-        if (sourceProp != null)
+        var code = $"source.{sourceProp.Name}";
+        if (isRegistered)
         {
-            var code = $"source.{sourceProp.Name}";
-            if (isRegistered)
-            {
-                code = $"source.{sourceProp.Name}{(PropertySymbolHelper.IsNullable(sourceProp) ? "?" : "")}.Transform()";
-            } 
-            else if (isGenrericEnumerable)
-            {
-                var str = $"[.. source.{sourceProp.Name}.Select(x => x.Transform())]";
-                code = PropertySymbolHelper.IsNullable(sourceProp) ? $"source.{sourceProp.Name} != null ? {str} : default" : str;
-            }
+            code = $"source.{sourceProp.Name}{(sourceProp.IsNullable() ? "?" : "")}.Transform()";
+        }
+        else if (isGenrericEnumerable)
+        {
+            var str = $"[.. source.{sourceProp.Name}.Select(x => x.Transform())]";
+            code = sourceProp.IsNullable() ? $"source.{sourceProp.Name} != null ? {str} : default" : str;
+        }
 
-            mapping.MethodCode =
-    $@"{_indent2}private static {targetProp.Type.ToDisplayString()} {mapping.DefaultMethodName}({attr.Source.ToDisplayString()} source)
+        return
+$@"{_indent2}private static {targetProp.Type.ToDisplayString()} {mapping.DefaultMethodName}({attr.Source.ToDisplayString()} source)
 {_indent2}{{
 {_indent3}return {code};
-{_indent2}}}
-{_indent2}static partial void {mapping.MethodName}({attr.Source.ToDisplayString()} source, ref {targetProp.Type.ToDisplayString()} target);";
-        }
-        else
-        {
-            mapping.MethodCode =
-$@"{_indent2}private static partial {targetProp.Type.ToDisplayString()} {mapping.MethodName}({attr.Source.ToDisplayString()} source);";
-        }
+{_indent2}}}";
     }
+
+    private static string CreateOptionalMappingMethodToBeImplemented(
+        PropertyMappingModel mapping,
+        IPropertySymbol targetProp,
+        AttributeDataModel attr)
+    {
+        return
+$@"{_indent2}static partial void {mapping.MethodName}({attr.Source.ToDisplayString()} source, ref {targetProp.Type.ToDisplayString()} target);";
+    }
+
+    private static string CreateRequiredMappingMethodToBeImplemented(
+        PropertyMappingModel mapping,
+        IPropertySymbol targetProp,
+        AttributeDataModel attr)
+    {
+        return
+$@"{_indent2}private static partial {targetProp.Type.ToDisplayString()} {mapping.MethodName}({attr.Source.ToDisplayString()} source);";
+    }
+
 }

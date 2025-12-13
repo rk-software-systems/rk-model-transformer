@@ -48,4 +48,14 @@ public static partial class DomainExtensions
     {
         return source.NullableStringToString ?? string.Empty;
     }
+
+    private static partial int ToViewModelIntRequiredIgnored(Domain source)
+    {
+        return 0;
+    }
+
+    private static partial string ToViewModelStringRequiredIgnored(Domain source)
+    {
+        return string.Empty;
+    }
 }

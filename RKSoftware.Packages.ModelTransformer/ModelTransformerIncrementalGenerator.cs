@@ -110,7 +110,13 @@ public class ModelTransformerIncrementalGenerator : IIncrementalGenerator
                         context.CreateReadonlyPropertyMustBeIgnoredWarning(attr.Source, attr.Target, notIgnoredReadonlyProperties);
                     }
 
-                    var exMethod = ModelExtensionGeneration.GenerateExtensionMethod(attr, groupedBySource);
+                    var notNullableIgnoredProperties = attr.NotNullableIgnoredProperties;
+                    if (notNullableIgnoredProperties.Count > 0)
+                    {
+                        context.CreateNotNullablePropertyCanNotBeIgnoredError(attr.Source, attr.Target, notNullableIgnoredProperties);
+                    }
+
+                    var exMethod = context.GenerateExtensionMethod(attr, groupedBySource);
                     exMethods.Add(exMethod);
                 }
 

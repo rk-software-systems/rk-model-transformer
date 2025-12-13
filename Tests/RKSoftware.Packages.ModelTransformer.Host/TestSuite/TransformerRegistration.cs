@@ -8,7 +8,11 @@ namespace RKSoftware.Packages.ModelTransformer.Host.TestSuite;
 [ModelTransformerRegistration<Domain, Dto>(
     IgnoredProperties = [nameof(ViewModel.StringIgnored), nameof(ViewModel.IntIgnored), nameof(ViewModel.StringReadonly)])]
 [ModelTransformerRegistration<Domain, ViewModel>(
-    IgnoredProperties = [nameof(ViewModel.StringIgnored), nameof(ViewModel.IntIgnored), nameof(ViewModel.StringReadonly)])]
+    IgnoredProperties = [
+        nameof(ViewModel.StringIgnored), 
+        nameof(ViewModel.IntIgnored), 
+        nameof(ViewModel.StringReadonly)
+    ])]
 public class TransformerRegistration
 {
 }

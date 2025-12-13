@@ -20,6 +20,9 @@ public static partial class MemberDomainExtensions
         var addresses = ToViewModelAddressesDefault(source);
         ToViewModelAddresses(source, ref addresses);
 
+        var firstName = ToViewModelFirstNameDefault(source);
+        ToViewModelFirstName(source, ref firstName);
+
         if (target == null)
         {
             target = new MemberViewModel
@@ -27,7 +30,8 @@ public static partial class MemberDomainExtensions
                 MemberId = memberId,
                 UserName = userName,
                 Address = address,
-                Addresses = addresses
+                Addresses = addresses,
+                FirstName = firstName
             };
         } 
         else
@@ -68,6 +72,13 @@ public static partial class MemberDomainExtensions
         return source.Addresses != null ? [.. source.Addresses.Select(x => x.Transform())] : default;
     }
     static partial void ToViewModelAddresses(MemberDomain source, ref List<AddressViewModel>? address);
+
+    private static string ToViewModelFirstNameDefault(MemberDomain source)
+    {
+        ArgumentNullException.ThrowIfNull(source, nameof(source));
+        return source.FirstName ?? string.Empty; // Example of custom default handling
+    }
+    static partial void ToViewModelFirstName(MemberDomain source, ref string firstName);
 
     #endregion
 

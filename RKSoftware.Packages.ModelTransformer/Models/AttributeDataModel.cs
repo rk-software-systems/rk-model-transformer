@@ -1,43 +1,33 @@
 ﻿using System.Collections.Frozen;
 using Microsoft.CodeAnalysis;
+using RKSoftware.Packages.ModelTransformer.Extensions;
 using RKSoftware.Packages.ModelTransformer.Generations;
 
 namespace RKSoftware.Packages.ModelTransformer.Models;
 
 internal sealed class AttributeDataModel
 {
-    #region fields
-
-    private readonly AttributeData _attr;
-    private readonly ITypeSymbol _source;
-    private readonly FrozenDictionary<string, IPropertySymbol> _sourceProperties;
-    private readonly ITypeSymbol _target;
-    private readonly FrozenDictionary<string, IPropertySymbol> _targetProperties;
-    private readonly FrozenDictionary<string, IParameterSymbol> _targetConstructorParams;
-    private readonly FrozenSet<string> _ignoredProperties;
-    private readonly FrozenSet<string> _incorrectIgnoredProperties;
-    private readonly FrozenSet<string> _notIgnoredReadonlyProperties;
-    #endregion
-
     #region props
 
-    public AttributeData Attribute => _attr;
+    public AttributeData Attribute { get; }
 
-    public ITypeSymbol Source => _source;
+    public ITypeSymbol Source { get; }
 
-    public FrozenDictionary<string, IPropertySymbol> SourceProperties => _sourceProperties;
+    public FrozenDictionary<string, IPropertySymbol> SourceProperties { get; }
 
-    public ITypeSymbol Target => _target;   
+    public ITypeSymbol Target { get; }
 
-    public FrozenDictionary<string, IPropertySymbol> TargetProperties => _targetProperties;
+    public FrozenDictionary<string, IPropertySymbol> TargetProperties { get; }
 
-    public FrozenDictionary<string, IParameterSymbol> TargetConstructorParams => _targetConstructorParams;
+    public FrozenDictionary<string, IParameterSymbol> TargetConstructorParams { get; }
 
-    public FrozenSet<string> IgnoredProperties => _ignoredProperties;
+    public FrozenSet<string> IgnoredProperties { get; }
 
-    public FrozenSet<string> IncorrectIgnoredProperties => _incorrectIgnoredProperties;
+    public FrozenSet<string> IncorrectIgnoredProperties { get; }
 
-    public FrozenSet<string> NotIgnoredReadonlyProperties => _notIgnoredReadonlyProperties;
+    public FrozenSet<string> NotIgnoredReadonlyProperties { get; }
+
+    public FrozenSet<string> NotNullableIgnoredProperties { get; }
 
     #endregion
 
@@ -45,13 +35,13 @@ internal sealed class AttributeDataModel
 
     public AttributeDataModel(AttributeData attr)
     {
-        _attr = attr ?? throw new ArgumentNullException(nameof(attr));
+        Attribute = attr ?? throw new ArgumentNullException(nameof(attr));
 
-        _source = _attr.AttributeClass!.TypeArguments.First();
-        _sourceProperties = GetProperties(_source);
-        _target = _attr.AttributeClass!.TypeArguments.Last();
-        _targetProperties = GetProperties(_target);
-        _targetConstructorParams = _target.GetMembers()
+        Source = attr.AttributeClass!.TypeArguments.First();
+        SourceProperties = GetProperties(Source);
+        Target = attr.AttributeClass!.TypeArguments.Last();
+        TargetProperties = GetProperties(Target);
+        TargetConstructorParams = Target.GetMembers()
             .OfType<IMethodSymbol>()
             .Where(x => x.MethodKind == MethodKind.Constructor && x.DeclaredAccessibility == Accessibility.Public)
             .Select(x => x.Parameters)
@@ -59,10 +49,11 @@ internal sealed class AttributeDataModel
             .First()
             .ToFrozenDictionary(x => x.Name, y => y, StringComparer.Ordinal);
 
-        var (correct, incorrect) = GetIgnoredProperties(_attr, _target);
-        _ignoredProperties = correct.ToFrozenSet(StringComparer.Ordinal);
-        _incorrectIgnoredProperties = incorrect.ToFrozenSet(StringComparer.Ordinal);
-        _notIgnoredReadonlyProperties = GetNotIgnoredReadonlyProperties(_target, _ignoredProperties);
+        var (correct, incorrect) = GetIgnoredProperties(attr, Target);
+        IgnoredProperties = correct.ToFrozenSet(StringComparer.Ordinal);
+        IncorrectIgnoredProperties = incorrect.ToFrozenSet(StringComparer.Ordinal);
+        NotIgnoredReadonlyProperties = GetNotIgnoredReadonlyProperties(Target, IgnoredProperties);
+        NotNullableIgnoredProperties = GetNotNullableIgnoredProperties(TargetProperties, IgnoredProperties);
     }
 
     #endregion
@@ -126,6 +117,12 @@ internal sealed class AttributeDataModel
             .ToFrozenDictionary(x => x.Name, y => y, StringComparer.Ordinal);
     }
 
-
+    private static FrozenSet<string> GetNotNullableIgnoredProperties(FrozenDictionary<string, IPropertySymbol> targetProperties, FrozenSet<string> ignoredProperties)
+    {
+        return targetProperties
+            .Where(kv => !kv.Value.IsNullable() && ignoredProperties.Contains(kv.Key))
+            .Select(kv => kv.Key)
+            .ToFrozenSet(StringComparer.Ordinal);
+    }
     #endregion
 }

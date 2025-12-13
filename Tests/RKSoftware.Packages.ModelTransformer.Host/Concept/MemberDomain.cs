@@ -9,4 +9,6 @@ public class MemberDomain
     public AddressDomain? Address { get; set; }
 
     public List<AddressDomain>? Addresses { get; set; }
+
+    public string? FirstName { get; set; }
 }

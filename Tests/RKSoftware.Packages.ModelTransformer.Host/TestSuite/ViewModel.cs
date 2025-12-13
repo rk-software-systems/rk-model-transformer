@@ -14,6 +14,10 @@ public class ViewModel
 
     public int? IntIgnored { get; set; }
 
+    public required string StringRequiredIgnored { get; set; }
+
+    public required int IntRequiredIgnored { get; set; }
+
     public string? StringMissed { get; set; }
 
     public int? IntMissed { get; set; }

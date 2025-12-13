@@ -1,11 +1,15 @@
 ﻿using Microsoft.CodeAnalysis;
-using RKSoftware.Packages.ModelTransformer.Helpers;
+using RKSoftware.Packages.ModelTransformer.Extensions;
 
 namespace RKSoftware.Packages.ModelTransformer.Models;
 
 internal sealed class PropertyMappingModel
 {
     public string PropertyName { get; }
+
+    public bool IsIgnored { get; set; }
+
+    public bool IsNullable { get; }
 
     public string VariableName { get; } 
 
@@ -25,15 +29,20 @@ internal sealed class PropertyMappingModel
 
     public bool IsReadonly { get; }
 
+    public bool IsConstructorParam { get; }    
+
     #region ctor
 
-    public PropertyMappingModel(IPropertySymbol targetProperty, ITypeSymbol target)
+    public PropertyMappingModel(IPropertySymbol targetProperty, AttributeDataModel attr, bool isIgnored)
     {
         PropertyName = targetProperty.Name;
-        VariableName = StringHelper.LowerCaseFirstLetter(targetProperty.Name);
-        DefaultMethodName = $"To{target.Name}{targetProperty.Name}Default";
-        MethodName = $"To{target.Name}{targetProperty.Name}";
+        IsIgnored = isIgnored;
+        IsNullable = targetProperty.IsNullable();
+        VariableName = isIgnored ? "default" : targetProperty.Name.LowerCaseFirstLetter();
+        DefaultMethodName = $"To{attr.Target.Name}{targetProperty.Name}Default";
+        MethodName = $"To{attr.Target.Name}{targetProperty.Name}";
         IsReadonly = targetProperty.SetMethod == null || targetProperty.SetMethod.IsInitOnly;
+        IsConstructorParam = attr.TargetConstructorParams.TryGetValue(targetProperty.Name, out _);        
     }
 
     #endregion
