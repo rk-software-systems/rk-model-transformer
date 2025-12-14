@@ -2,7 +2,7 @@
 
 namespace RKSoftware.Packages.ModelTransformer.Host.TestSamples.PrimitiveOptionalToRequired;
 
-//[ModelTransformerRegistration<CompanyDomain, CompanyViewModel>]
-//public class CompanyTransformerRegistration
-//{
-//}
+[ModelTransformerRegistration<CompanyDomain, CompanyViewModel>]
+public class CompanyTransformerRegistration
+{
+}

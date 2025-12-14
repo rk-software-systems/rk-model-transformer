@@ -14,7 +14,7 @@ internal static class ModelExtensionGeneration
     private static readonly string _indent4 = new('\t', 4);
     private static readonly string _indent5 = new('\t', 5);
 
-    public static string GenerateExtensionClass(string hostNamespace, string sourceName, List<string> methods)
+    public static string GenerateExtensionClass(string hostNamespace, string className, List<string> methods)
     {
         var methodsCode = string.Empty;
         if (methods.Count > 0)
@@ -28,7 +28,7 @@ internal static class ModelExtensionGeneration
 
 namespace {hostNamespace}
 {{
-{_indent1}public static partial class {sourceName}Extensions
+{_indent1}public static partial class {className}
 {_indent1}{{
 {_indent2}{methodsCode}
 {_indent1}}}    
@@ -140,37 +140,45 @@ namespace {hostNamespace}
         foreach (var targetProp in targetProps)
         {
             IPropertySymbol? sourceProp = null;
+            var canNotConvertType = false;
             var isRegistered = false;
             var isGenrericEnumerable = false;
+
             var isIgnored = attr.IgnoredProperties.TryGetValue(targetProp.Key, out _);
+
+            var mapping = new PropertyMappingModel(targetProp.Value, attr, isIgnored);
+
             if (!isIgnored)
             {
-                if (attr.SourceProperties.TryGetValue(targetProp.Key, out sourceProp) &&
-                    sourceProp.CanNotConvertType(targetProp.Value))
+                if (attr.SourceProperties.TryGetValue(targetProp.Key, out sourceProp))
                 {
-                    if (dic.TryGetValue(sourceProp.Type.OriginalDefinition.ToDisplayString(), out var complexTargets) &&
-                        complexTargets.Any(x => SymbolEqualityComparer.Default.Equals(x.Target, targetProp.Value.Type)))
+                    canNotConvertType = sourceProp.CanNotConvertType(targetProp.Value);
+                    if (canNotConvertType)
                     {
-                        isRegistered = true;
-                    }
-                    else
-                    {
-                        var sourceElementType = sourceProp.GetGenericElementType();
-                        var targetElementType = targetProp.Value.GetGenericElementType();
-                        if (sourceElementType != null && targetElementType != null &&
-                           dic.TryGetValue(sourceElementType.OriginalDefinition.ToDisplayString(), out var complexElementTargets) &&
-                           complexElementTargets.Any(x => SymbolEqualityComparer.Default.Equals(x.Target, targetElementType)))
+                        if (dic.TryGetValue(sourceProp.Type.OriginalDefinition.ToDisplayString(), out var complexTargets) &&
+                            complexTargets.Any(x => SymbolEqualityComparer.Default.Equals(x.Target, targetProp.Value.Type)))
                         {
-                            isGenrericEnumerable = true;
+                            isRegistered = true;
                         }
                         else
                         {
-                            sourceProp = null;
+                            var sourceElementType = sourceProp.GetGenericElementType();
+                            var targetElementType = targetProp.Value.GetGenericElementType();
+                            if (sourceElementType != null && targetElementType != null &&
+                               dic.TryGetValue(sourceElementType.OriginalDefinition.ToDisplayString(), out var complexElementTargets) &&
+                               complexElementTargets.Any(x => SymbolEqualityComparer.Default.Equals(x.Target, targetElementType)))
+                            {
+                                isGenrericEnumerable = true;
+                            }
+                            else
+                            {
+                                sourceProp = null;
+                            }
                         }
                     }
                 }
             }
-            var mapping = new PropertyMappingModel(targetProp.Value, attr, isIgnored);
+
             if (!isIgnored)
             {
                 if (sourceProp != null)
@@ -237,12 +245,12 @@ namespace {hostNamespace}
 
     private static string SetVariablePostConstructor(PropertyMappingModel mapping)
     {
-        return  $@"{_indent5}{mapping.PropertyName} = {mapping.VariableName}";        
+        return $@"{_indent5}{mapping.PropertyName} = {mapping.VariableName}";
     }
 
     private static string SetVariable(PropertyMappingModel mapping)
-    {        
-        return $@"{_indent4}target.{mapping.PropertyName} = {mapping.VariableName};";        
+    {
+        return $@"{_indent4}target.{mapping.PropertyName} = {mapping.VariableName};";
     }
 
     private static string CreateDefaultMappingMethod(
@@ -288,5 +296,4 @@ $@"{_indent2}static partial void {mapping.MethodName}({attr.Source.ToDisplayStri
         return
 $@"{_indent2}private static partial {targetProp.Type.ToDisplayString()} {mapping.MethodName}({attr.Source.ToDisplayString()} source);";
     }
-
 }

@@ -38,7 +38,7 @@ internal sealed class PropertyMappingModel
         PropertyName = targetProperty.Name;
         IsIgnored = isIgnored;
         IsNullable = targetProperty.IsNullable();
-        VariableName = isIgnored ? "default" : targetProperty.Name.LowerCaseFirstLetter();
+        VariableName = isIgnored ? Constants.Default : targetProperty.Name.LowerCaseFirstLetter();
         DefaultMethodName = $"To{attr.Target.Name}{targetProperty.Name}Default";
         MethodName = $"To{attr.Target.Name}{targetProperty.Name}";
         IsReadonly = targetProperty.SetMethod == null || targetProperty.SetMethod.IsInitOnly;

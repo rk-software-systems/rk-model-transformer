@@ -8,6 +8,11 @@ namespace RKSoftware.Packages.ModelTransformer.Models;
 internal sealed class AttributeDataModel
 {
     #region props
+    public string HostNamespace { get; }
+
+    public string Key { get; }
+
+    public string ClassName { get; }
 
     public AttributeData Attribute { get; }
 
@@ -33,14 +38,16 @@ internal sealed class AttributeDataModel
 
     #region ctor
 
-    public AttributeDataModel(AttributeData attr)
+    public AttributeDataModel(string hostNamespace, AttributeData attr)
     {
+        HostNamespace = hostNamespace;
         Attribute = attr ?? throw new ArgumentNullException(nameof(attr));
-
         Source = attr.AttributeClass!.TypeArguments.First();
-        SourceProperties = GetProperties(Source);
+        Key = Source.OriginalDefinition.ToDisplayString();
+        ClassName = $"{Source.Name}Extensions";
+        SourceProperties = GetProperties(Source, true);
         Target = attr.AttributeClass!.TypeArguments.Last();
-        TargetProperties = GetProperties(Target);
+        TargetProperties = GetProperties(Target, false);
         TargetConstructorParams = Target.GetMembers()
             .OfType<IMethodSymbol>()
             .Where(x => x.MethodKind == MethodKind.Constructor && x.DeclaredAccessibility == Accessibility.Public)
@@ -66,7 +73,7 @@ internal sealed class AttributeDataModel
         var incorrect = new HashSet<string>();
 
         var namedArgument = attr.NamedArguments
-            .FirstOrDefault(x => RegistrationAttributeGeneration.IgnoredPropertiesPropertyName.Equals(x.Key, StringComparison.Ordinal));
+            .FirstOrDefault(x => Constants.IgnoredProperties.Equals(x.Key, StringComparison.Ordinal));
 
         if (namedArgument.Value.Kind == TypedConstantKind.Array && !namedArgument.Value.Values.IsDefaultOrEmpty)
         {
@@ -107,13 +114,13 @@ internal sealed class AttributeDataModel
             .ToFrozenSet(StringComparer.Ordinal);
     }
 
-    private static FrozenDictionary<string, IPropertySymbol> GetProperties(ITypeSymbol type)
+    private static FrozenDictionary<string, IPropertySymbol> GetProperties(ITypeSymbol type, bool includeReadOnly)
     {
         return type.GetMembers()
             .OfType<IPropertySymbol>()
             .Where(p => !p.IsStatic &&                         
                         p.DeclaredAccessibility == Accessibility.Public &&
-                        !p.IsReadOnly)
+                        (includeReadOnly || !p.IsReadOnly))
             .ToFrozenDictionary(x => x.Name, y => y, StringComparer.Ordinal);
     }
 

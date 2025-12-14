@@ -73,7 +73,7 @@ public class ModelTransformerIncrementalGenerator : IIncrementalGenerator
                 // Is the attribute the marker attribute?
                 if ($"{RegistrationAttributeGeneration.Namespace}.{RegistrationAttributeGeneration.GenericName}".Equals(name, StringComparison.Ordinal))
                 {
-                    var attr = new AttributeDataModel(attributeData);
+                    var attr = new AttributeDataModel(registrationModel.HostNamespace, attributeData);
                     registrationModel.Attributes.Add(attr);
                 }                
             }
@@ -90,7 +90,7 @@ public class ModelTransformerIncrementalGenerator : IIncrementalGenerator
         if (tr != null)
         {
             var groupedBySource = tr.Attributes
-                .GroupBy(a =>  a.Source.OriginalDefinition.ToDisplayString())
+                .GroupBy(a =>  a.Key)
                 .ToDictionary(x => x.Key, y => y.ToList());
 
             foreach (var group in groupedBySource)
@@ -101,30 +101,30 @@ public class ModelTransformerIncrementalGenerator : IIncrementalGenerator
                     var incorrectIgnoredProperties = attr.IncorrectIgnoredProperties;
                     if (incorrectIgnoredProperties.Count > 0)
                     {
-                        context.CreateInvalidPropertyNameWarning(attr.Source, attr.Target, incorrectIgnoredProperties);
+                        context.CreateInvalidPropertyNameWarning(tr.FileName, attr.Source, attr.Target, incorrectIgnoredProperties);
                     }
 
                     var notIgnoredReadonlyProperties = attr.NotIgnoredReadonlyProperties;
                     if (notIgnoredReadonlyProperties.Count > 0)
                     {
-                        context.CreateReadonlyPropertyMustBeIgnoredWarning(attr.Source, attr.Target, notIgnoredReadonlyProperties);
+                        context.CreateReadonlyPropertyMustBeIgnoredWarning(tr.FileName, attr.Source, attr.Target, notIgnoredReadonlyProperties);
                     }
 
                     var notNullableIgnoredProperties = attr.NotNullableIgnoredProperties;
                     if (notNullableIgnoredProperties.Count > 0)
                     {
-                        context.CreateNotNullablePropertyCanNotBeIgnoredError(attr.Source, attr.Target, notNullableIgnoredProperties);
+                        context.CreateNotNullablePropertyCanNotBeIgnoredWarning(tr.FileName, attr.Source, attr.Target, notNullableIgnoredProperties);
                     }
 
                     var exMethod = context.GenerateExtensionMethod(attr, groupedBySource);
                     exMethods.Add(exMethod);
                 }
 
-                var sourceName = group.Value.First().Source.Name;
+                var sourceName = group.Value.First().ClassName;
 
                 var exClass = ModelExtensionGeneration.GenerateExtensionClass(tr.HostNamespace, sourceName, exMethods);
 
-                var fileName = $"{tr.HostNamespace}.{sourceName}Extensions.g.cs";
+                var fileName = $"{tr.HostNamespace}.{sourceName}.g.cs";
 
                 context.AddSource(fileName, SourceText.From(exClass, Encoding.UTF8));
             }
