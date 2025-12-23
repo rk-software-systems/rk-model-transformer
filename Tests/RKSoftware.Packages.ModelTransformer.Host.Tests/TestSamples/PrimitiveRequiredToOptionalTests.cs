@@ -1,11 +1,11 @@
-﻿using RKSoftware.Packages.ModelTransformer.Host.TestSamples.PrimitiveOptionalToRequired;
+﻿using RKSoftware.Packages.ModelTransformer.Host.TestSamples.PrimitiveRequiredToOptional;
 
 namespace RKSoftware.Packages.ModelTransformer.Host.Tests.TestSamples;
 
-public class PrimitiveOptionalToRequiredTests
+public class PrimitiveRequiredToOptionalTests
 {
-    private const string? _title = null;
-    private readonly int? _brandId = null;
+    private const string _title = "Software Solutions";
+    private readonly int _brandId = 9;
 
 
     [Fact]
@@ -21,9 +21,9 @@ public class PrimitiveOptionalToRequiredTests
 
         Assert.NotNull(viewModel);
         Assert.NotNull(viewModel.Title);
-        Assert.Equal(CompanyDomainExtensions.Title, viewModel.Title);
-        Assert.NotEqual(default, viewModel.BrandId);
-        Assert.Equal(CompanyDomainExtensions.BrandId, viewModel.BrandId);
+        Assert.Equal(_title, viewModel.Title);
+        Assert.NotNull(viewModel.BrandId);
+        Assert.Equal(_brandId, viewModel.BrandId);
     }
 
     [Fact]
@@ -37,8 +37,8 @@ public class PrimitiveOptionalToRequiredTests
 
         var viewModel = new CompanyViewModel
         {
-            Title = "Med Corp",
-            BrandId = 5
+            Title = null,
+            BrandId = null
         };
 
         var updatedViewModel = domain.Transform(viewModel);
@@ -46,8 +46,8 @@ public class PrimitiveOptionalToRequiredTests
         Assert.NotNull(updatedViewModel);
         Assert.Equal(viewModel, updatedViewModel);
         Assert.NotNull(updatedViewModel.Title);
-        Assert.Equal(CompanyDomainExtensions.Title, updatedViewModel.Title);
-        Assert.NotEqual(default, updatedViewModel.BrandId);
-        Assert.Equal(CompanyDomainExtensions.BrandId, updatedViewModel.BrandId);
+        Assert.Equal(_title, updatedViewModel.Title);
+        Assert.NotNull(updatedViewModel.BrandId);
+        Assert.Equal(_brandId, updatedViewModel.BrandId);
     }
 }

@@ -14,5 +14,5 @@ internal sealed class RegistrationModel(INamedTypeSymbol host)
 
     public string HostNamespace => Host.ContainingNamespace.ToDisplayString();
 
-    public string FileName => $"{HostNamespace}.{Host.Name}.cs";
+    public Location Location => _host.Locations[0];
 }

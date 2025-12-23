@@ -14,12 +14,12 @@ internal static class DiagnosticExtensions
 
     public static void CreateInvalidPropertyNameWarning(
         this SourceProductionContext context,
-        string fileName,
+        Location location,
         ITypeSymbol sourceType,
         ITypeSymbol targetType, 
         IEnumerable<string> propertyNames)
     {
-        var location = CreateLocation(fileName);
+        //var location = CreateLocation(fileName);
 
         var descriptor = new DiagnosticDescriptor(
                         id: $"{_idProfix}001",
@@ -34,12 +34,12 @@ internal static class DiagnosticExtensions
 
     public static void CreateReadonlyPropertyMustBeIgnoredWarning(
         this SourceProductionContext context,
-        string fileName,
+        Location location,
         ITypeSymbol sourceType,
         ITypeSymbol targetType, 
         IEnumerable<string> propertyNames)
     {
-        var location = CreateLocation(fileName);
+        //var location = CreateLocation(fileName);
 
         var descriptor = new DiagnosticDescriptor(
                         id: $"{_idProfix}002",
@@ -54,12 +54,12 @@ internal static class DiagnosticExtensions
 
     public static void CreateNotNullablePropertyCanNotBeIgnoredWarning(
         this SourceProductionContext context,
-        string fileName,
+        Location location,
         ITypeSymbol sourceType, 
         ITypeSymbol targetType,
         IEnumerable<string> propertyNames)
     {
-        var location = CreateLocation(fileName);
+        //var location = CreateLocation(fileName);
 
         var descriptor = new DiagnosticDescriptor(
                         id: $"{_idProfix}003",
@@ -72,8 +72,8 @@ internal static class DiagnosticExtensions
         context.ReportDiagnostic(diagnostic);
     }
 
-    private static Location CreateLocation(string fileName)
-    {
-        return  Location.Create(fileName, new TextSpan(0, 0), new LinePositionSpan(new LinePosition(0, 0), new LinePosition(0, 0)));
-    }
+    //private static Location CreateLocation(string fileName)
+    //{
+    //    return  Location.Create(fileName, new TextSpan(0, 0), new LinePositionSpan(new LinePosition(0, 0), new LinePosition(0, 0)));
+    //}
 }

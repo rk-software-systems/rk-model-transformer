@@ -71,7 +71,7 @@ namespace RKSoftware.Packages.ModelTransformer
             var str = "#nullable enable" + Environment.NewLine + await File.ReadAllTextAsync(x, ct);
 
             var options = new CSharpParseOptions(LanguageVersion.Latest);
-            var tree = CSharpSyntaxTree.ParseText(str, options: options, cancellationToken: ct);
+            var tree = CSharpSyntaxTree.ParseText(str, options: options, cancellationToken: ct, path: x);
             trees.Add(tree);
         });
 
