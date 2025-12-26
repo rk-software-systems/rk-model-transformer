@@ -18,7 +18,17 @@
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
-    <Version>0.0.0-preview.4</Version>
+    <Version>0.0.0-preview.5</Version>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Company>RK Software Systems</Company>
+    <Description>Helps to transform one model to another.</Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageIcon>company-logo.png</PackageIcon>
+    <RepositoryUrl>https://github.com/rk-software-systems/rk-model-transformer</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/rk-software-systems/rk-model-transformer</PackageProjectUrl>
   </PropertyGroup>
 
   <ItemGroup>
@@ -28,6 +38,12 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" PrivateAssets="all" />
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="4.14.0" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="../company-logo.png" Pack="true" PackagePath="/" />
+    <None Include="../README.md" Pack="true" PackagePath="/" />
+    <None Include="../LICENSE" Pack="true" PackagePath="/" />
   </ItemGroup>
 
 </Project>
