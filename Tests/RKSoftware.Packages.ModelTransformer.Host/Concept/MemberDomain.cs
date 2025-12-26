@@ -11,4 +11,6 @@ public class MemberDomain
     public List<AddressDomain>? Addresses { get; set; }
 
     public string? FirstName { get; set; }
+
+    public LinkedList<DepartmentDomain>? Departments { get; set; }
 }

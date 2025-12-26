@@ -7,6 +7,8 @@ internal sealed class PropertyMappingModel
 {
     public string PropertyName { get; }
 
+    public ITypeSymbol PropertyType { get; }
+
     public bool IsIgnored { get; set; }
 
     public bool IsNullable { get; }
@@ -36,6 +38,7 @@ internal sealed class PropertyMappingModel
     public PropertyMappingModel(IPropertySymbol targetProperty, AttributeDataModel attr, bool isIgnored)
     {
         PropertyName = targetProperty.Name;
+        PropertyType = targetProperty.Type;
         IsIgnored = isIgnored;
         IsNullable = targetProperty.IsNullable();
         VariableName = isIgnored ? Constants.Default : targetProperty.Name.LowerCaseFirstLetter();

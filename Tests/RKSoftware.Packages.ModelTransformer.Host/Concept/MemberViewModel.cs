@@ -11,4 +11,6 @@ public class MemberViewModel
     public List<AddressViewModel>? Addresses { get; set; }
 
     public required string FirstName { get; set; }
+
+    public LinkedList<DepartmentViewModel>? Departments { get; set; }
 }

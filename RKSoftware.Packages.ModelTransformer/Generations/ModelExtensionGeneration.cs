@@ -268,7 +268,17 @@ namespace {hostNamespace}
         }
         else if (isGenrericEnumerable)
         {
-            var str = $"[.. source.{sourceProp.Name}.Select(x => x.Transform())]";
+            string str;
+            if (mapping.PropertyType is INamedTypeSymbol nt &&
+                nt.Constructors.Any(c => c.Parameters.Length > 0))
+            {
+                str = $"new (source.{sourceProp.Name}.Select(x => x.Transform()))";
+            }
+            else
+            {
+                str = $"[.. source.{sourceProp.Name}.Select(x => x.Transform())]"; 
+            }
+
             code = sourceProp.IsNullable() ? $"source.{sourceProp.Name} != null ? {str} : default" : str;
         }
 
