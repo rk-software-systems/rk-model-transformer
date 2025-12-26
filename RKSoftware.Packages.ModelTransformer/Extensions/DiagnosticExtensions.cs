@@ -19,8 +19,6 @@ internal static class DiagnosticExtensions
         ITypeSymbol targetType, 
         IEnumerable<string> propertyNames)
     {
-        //var location = CreateLocation(fileName);
-
         var descriptor = new DiagnosticDescriptor(
                         id: $"{_idProfix}001",
                         title: "Invalid property name",
@@ -39,8 +37,6 @@ internal static class DiagnosticExtensions
         ITypeSymbol targetType, 
         IEnumerable<string> propertyNames)
     {
-        //var location = CreateLocation(fileName);
-
         var descriptor = new DiagnosticDescriptor(
                         id: $"{_idProfix}002",
                         title: "Readonly property should be ignored",
@@ -59,8 +55,6 @@ internal static class DiagnosticExtensions
         ITypeSymbol targetType,
         IEnumerable<string> propertyNames)
     {
-        //var location = CreateLocation(fileName);
-
         var descriptor = new DiagnosticDescriptor(
                         id: $"{_idProfix}003",
                         title: "Not nullable property should not be ignored",
@@ -71,9 +65,4 @@ internal static class DiagnosticExtensions
         var diagnostic = Diagnostic.Create(descriptor, location, sourceType.Name, targetType.Name, string.Join(", ", propertyNames));
         context.ReportDiagnostic(diagnostic);
     }
-
-    //private static Location CreateLocation(string fileName)
-    //{
-    //    return  Location.Create(fileName, new TextSpan(0, 0), new LinePositionSpan(new LinePosition(0, 0), new LinePosition(0, 0)));
-    //}
 }

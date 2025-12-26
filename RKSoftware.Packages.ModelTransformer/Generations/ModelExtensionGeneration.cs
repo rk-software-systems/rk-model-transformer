@@ -200,7 +200,7 @@ namespace {hostNamespace}
                 mapping.PostConstructorVariableMappingCode = SetVariablePostConstructor(mapping);
             }
 
-            if (!mapping.IsReadonly)
+            if (!mapping.IsReadonly && !isIgnored)
             {
                 mapping.VariableMappingCode = SetVariable(mapping);
             }
