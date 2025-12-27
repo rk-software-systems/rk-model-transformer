@@ -140,9 +140,7 @@ namespace {hostNamespace}
         foreach (var targetProp in targetProps)
         {
             IPropertySymbol? sourceProp = null;
-            var canNotConvertType = false;
-            var isRegistered = false;
-            var isGenrericEnumerable = false;
+            string? mappingCode = null;
 
             var isIgnored = attr.IgnoredProperties.TryGetValue(targetProp.Key, out _);
 
@@ -152,37 +150,50 @@ namespace {hostNamespace}
             {
                 if (attr.SourceProperties.TryGetValue(targetProp.Key, out sourceProp))
                 {
-                    canNotConvertType = sourceProp.CanNotConvertType(targetProp.Value);
-                    if (canNotConvertType)
+                    if (sourceProp.CanNotConvertType(targetProp.Value))
                     {
                         if (dic.TryGetValue(sourceProp.Type.OriginalDefinition.ToDisplayString(), out var complexTargets) &&
                             complexTargets.Any(x => SymbolEqualityComparer.Default.Equals(x.Target, targetProp.Value.Type)))
                         {
-                            isRegistered = true;
+                            mappingCode = $"source.{sourceProp.Name}{(sourceProp.IsNullable() ? "?" : "")}.Transform()";
                         }
                         else
                         {
-                            var sourceElementType = sourceProp.GetGenericArgumentType();
-                            var targetElementType = targetProp.Value.GetGenericArgumentType();
-                            if (sourceElementType != null && 
-                                targetElementType != null &&
-                               dic.TryGetValue(sourceElementType.OriginalDefinition.ToDisplayString(), out var complexElementTargets) &&
-                               complexElementTargets.Any(x => SymbolEqualityComparer.Default.Equals(x.Target, targetElementType)))
+                            var sourceArgumentType = sourceProp.GetGenericArgumentType();
+                            var targetArgumentType = targetProp.Value.GetGenericArgumentType();
+                            if (sourceArgumentType != null &&
+                                targetArgumentType != null &&
+                                (targetArgumentType.IsNullable() || !sourceArgumentType.IsNullable()) &&
+                               dic.TryGetValue(sourceArgumentType.OriginalDefinition.ToDisplayString(), out var complexArgumentTargets) &&
+                               complexArgumentTargets.Any(x => SymbolEqualityComparer.Default.Equals(x.Target, targetArgumentType)))
                             {
-                                isGenrericEnumerable = true;
-                            }
-                            else
-                            {
-                                sourceProp = null;
+                                string? str = null;
+                                if (mapping.PropertyType is INamedTypeSymbol nt &&  nt.Constructors.Any(c => c.Parameters.Length > 0))
+                                {
+                                    str = $"new (source.{sourceProp.Name}.Select(x => x.Transform()))";
+                                }
+                                else if (mapping.PropertyType.IsGenericInterfaceConstructable())
+                                {
+                                    str = $"[.. source.{sourceProp.Name}.Select(x => x{(sourceArgumentType.IsNullable() ? "?" : "")}.Transform())]";
+                                }
+
+                                if (str != null)
+                                {
+                                    mappingCode = sourceProp.IsNullable() ? $"source.{sourceProp.Name} != null ? {str} : default" : str;
+                                }
                             }
                         }
+                    }
+                    else
+                    {
+                        mappingCode = $"source.{sourceProp.Name}";
                     }
                 }
             }
 
             if (!isIgnored)
             {
-                if (sourceProp != null)
+                if (mappingCode != null)
                 {
                     mapping.VariableCreationCode = CreateVariableByDefaultMappingMethod(mapping);
                 }
@@ -208,15 +219,15 @@ namespace {hostNamespace}
 
             if (!isIgnored)
             {
-                if (sourceProp != null)
+                if (mappingCode != null)
                 {
-                    var defaultMethod = CreateDefaultMappingMethod(mapping, isRegistered, isGenrericEnumerable, targetProp.Value, sourceProp, attr);
-                    var optionalMethod = CreateOptionalMappingMethodToBeImplemented(mapping, targetProp.Value, attr);
+                    var defaultMethod = CreateDefaultMappingMethod(mapping, attr, mappingCode);
+                    var optionalMethod = CreateOptionalMappingMethodToBeImplemented(mapping, attr);
                     mapping.MethodCode = $"{defaultMethod}{_newLine}{optionalMethod}";
                 }
                 else
                 {
-                    mapping.MethodCode = CreateRequiredMappingMethodToBeImplemented(mapping, targetProp.Value, attr);
+                    mapping.MethodCode = CreateRequiredMappingMethodToBeImplemented(mapping, attr);
                 }
             }
 
@@ -254,60 +265,24 @@ namespace {hostNamespace}
         return $@"{_indent4}target.{mapping.PropertyName} = {mapping.VariableName};";
     }
 
-    private static string CreateDefaultMappingMethod(
-        PropertyMappingModel mapping,
-        bool isRegistered,
-        bool isGenrericEnumerable,
-        IPropertySymbol targetProp,
-        IPropertySymbol sourceProp,
-        AttributeDataModel attr)
+    private static string CreateDefaultMappingMethod(PropertyMappingModel mapping, AttributeDataModel attr, string code)
     {
-        var code = $"source.{sourceProp.Name}";
-        if (isRegistered)
-        {
-            code = $"source.{sourceProp.Name}{(sourceProp.IsNullable() ? "?" : "")}.Transform()";
-        }
-        else if (isGenrericEnumerable)
-        {
-            string? str = null;
-            if (mapping.PropertyType is INamedTypeSymbol nt &&
-                nt.Constructors.Any(c => c.Parameters.Length > 0))
-            {
-                str = $"new (source.{sourceProp.Name}.Select(x => x.Transform()))";
-            }
-            else if (mapping.PropertyType.IsGenericInterfaceConstructable())
-            {
-                str = $"[.. source.{sourceProp.Name}.Select(x => x{(sourceProp.IsNullable() ? "?" : "")}.Transform())]"; 
-            }
-
-            if (str != null)
-            {
-                code = sourceProp.IsNullable() ? $"source.{sourceProp.Name} != null ? {str} : default" : str;
-            }
-        }
-
         return
-$@"{_indent2}private static {targetProp.Type.ToDisplayString()} {mapping.DefaultMethodName}({attr.Source.ToDisplayString()} source)
+$@"{_indent2}private static {mapping.PropertyType.ToDisplayString()} {mapping.DefaultMethodName}({attr.Source.ToDisplayString()} source)
 {_indent2}{{
 {_indent3}return {code};
 {_indent2}}}";
     }
 
-    private static string CreateOptionalMappingMethodToBeImplemented(
-        PropertyMappingModel mapping,
-        IPropertySymbol targetProp,
-        AttributeDataModel attr)
+    private static string CreateOptionalMappingMethodToBeImplemented(PropertyMappingModel mapping, AttributeDataModel attr)
     {
         return
-$@"{_indent2}static partial void {mapping.MethodName}({attr.Source.ToDisplayString()} source, ref {targetProp.Type.ToDisplayString()} target);";
+$@"{_indent2}static partial void {mapping.MethodName}({attr.Source.ToDisplayString()} source, ref {mapping.PropertyType.ToDisplayString()} target);";
     }
 
-    private static string CreateRequiredMappingMethodToBeImplemented(
-        PropertyMappingModel mapping,
-        IPropertySymbol targetProp,
-        AttributeDataModel attr)
+    private static string CreateRequiredMappingMethodToBeImplemented(PropertyMappingModel mapping, AttributeDataModel attr)
     {
         return
-$@"{_indent2}private static partial {targetProp.Type.ToDisplayString()} {mapping.MethodName}({attr.Source.ToDisplayString()} source);";
+$@"{_indent2}private static partial {mapping.PropertyType.ToDisplayString()} {mapping.MethodName}({attr.Source.ToDisplayString()} source);";
     }
 }

@@ -14,8 +14,8 @@ internal static class PropertyExtensions
             return true;
         }
 
-        var isSourceNullable = IsNullable(source);
-        var isTargetNullable = IsNullable(target);
+        var isSourceNullable = source.IsNullable();
+        var isTargetNullable = target.IsNullable();
 
         return !isTargetNullable && isSourceNullable;
     }
@@ -60,7 +60,7 @@ internal static class PropertyExtensions
                 return null;
             }
 
-            if (namedType.OriginalDefinition.SpecialType.IsCollectionInterfaceSpecial() ||
+            if (namedType.OriginalDefinition.IsCollectionInterfaceSpecial() ||
                 namedType.AllInterfaces.Any(i => i.OriginalDefinition.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T))
             {
                 return namedType.TypeArguments[0];
@@ -68,41 +68,5 @@ internal static class PropertyExtensions
         }
 
         return null;
-    }
-
-    public static bool IsGenericInterfaceConstructable(this ITypeSymbol type)
-    {
-        if (type is INamedTypeSymbol namedType && namedType.IsGenericType)
-        {
-            if (namedType.TypeArguments.Length != 1)
-            {
-                return false;
-            }
-
-            var specialType = namedType.OriginalDefinition.SpecialType;
-            if (specialType.IsCollectionInterfaceSpecial())
-            {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private static bool IsCollectionInterfaceSpecial(this SpecialType specialType)
-    {
-        return specialType == SpecialType.System_Collections_Generic_IEnumerable_T ||
-               specialType == SpecialType.System_Collections_Generic_ICollection_T ||
-               specialType == SpecialType.System_Collections_Generic_IList_T ||
-               specialType == SpecialType.System_Collections_Generic_IReadOnlyCollection_T ||
-               specialType == SpecialType.System_Collections_Generic_IReadOnlyList_T;
-    }
-
-    private static ITypeSymbol GetNonNullable(this ITypeSymbol type)
-    {
-        if (type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T && type is INamedTypeSymbol named)
-        {
-            return named.TypeArguments[0];
-        }
-        return type;
-    }
+    }    
 }
