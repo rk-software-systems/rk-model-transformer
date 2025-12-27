@@ -26,6 +26,9 @@ public static partial class MemberDomainExtensions
         var departments = ToViewModelDepartmentsDefault(source);
         ToViewModelDepartments(source, ref departments);
 
+        var scores = ToViewModelScoresDefault(source);
+        ToViewModelScores(source, ref scores);
+
         if (target == null)
         {
             target = new MemberViewModel
@@ -35,7 +38,8 @@ public static partial class MemberDomainExtensions
                 Address = address,
                 Addresses = addresses,
                 FirstName = firstName,
-                Departments = departments
+                Departments = departments,
+                Scores = scores
             };
         } 
         else
@@ -45,6 +49,7 @@ public static partial class MemberDomainExtensions
             target.Address = address;
             target.Addresses = addresses;
             target.Departments = departments;
+            target.Scores = scores;
         }
 
         return target;
@@ -91,6 +96,12 @@ public static partial class MemberDomainExtensions
         return source.Departments != null ? new (source.Departments.Select(x => x.Transform())) : default;
     }
     static partial void ToViewModelDepartments(MemberDomain source, ref LinkedList<DepartmentViewModel>? target);
+
+    private static int[]? ToViewModelScoresDefault(MemberDomain source)
+    {
+        return source.Scores != null ? source.Scores[..] : default;
+    }
+    static partial void ToViewModelScores(MemberDomain source, ref int[]? target);
     #endregion
 
     #region to Dto

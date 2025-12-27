@@ -1,11 +1,7 @@
-﻿namespace RKSoftware.Packages.ModelTransformer.Host.TestSamples.CollectionOptional;
+﻿namespace RKSoftware.Packages.ModelTransformer.Host.TestSamples.CollectionInterface;
 
 public class CompanyViewModel
 {
-    public LinkedList<ProjectViewModel>? ProjectLinkedList { get; set; }
-
-    public List<ProjectViewModel>? ProjectList { get; set; }
-
     public IList<ProjectViewModel>? ProjectIList { get; set; }
 
     public IEnumerable<ProjectViewModel>? ProjectIEnumerable { get; set; }
@@ -14,5 +10,5 @@ public class CompanyViewModel
 
     public IReadOnlyCollection<ProjectViewModel>? ProjectIReadOnlyCollection { get; set; }
 
-    public IReadOnlyList<ProjectViewModel>? ProjectIReadOnlyList { get; set; }    
+    public IReadOnlyList<ProjectViewModel>? ProjectIReadOnlyList { get; set; }
 }

@@ -1,4 +1,4 @@
-﻿namespace RKSoftware.Packages.ModelTransformer.Host.TestSamples.CollectionOptional;
+﻿namespace RKSoftware.Packages.ModelTransformer.Host.TestSamples.CollectionInterface;
 
 public class ProjectDomain
 {

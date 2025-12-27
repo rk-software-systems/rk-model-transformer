@@ -13,4 +13,8 @@ public class MemberViewModel
     public required string FirstName { get; set; }
 
     public LinkedList<DepartmentViewModel>? Departments { get; set; }
+
+#pragma warning disable CA1819 // Properties should not return arrays
+    public int[]? Scores { get; set; }
+#pragma warning restore CA1819 // Properties should not return arrays
 }
