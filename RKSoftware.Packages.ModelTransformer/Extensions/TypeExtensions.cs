@@ -43,7 +43,7 @@ internal static class TypeExtensions
     /// <returns>
     /// true if the type symbol is one of the recognized generic collection interfaces; otherwise, false.
     /// </returns>
-    public static bool IsCollectionInterfaceSpecial(this INamedTypeSymbol type)
+    public static bool IsEnumerableInterfaceSpecial(this INamedTypeSymbol type)
     {
         var specialType = type.OriginalDefinition.SpecialType;
         return specialType == SpecialType.System_Collections_Generic_IEnumerable_T ||
@@ -66,6 +66,23 @@ internal static class TypeExtensions
         var specialType = type.OriginalDefinition.SpecialType;
         return specialType == SpecialType.System_Collections_Generic_IList_T ||
                specialType == SpecialType.System_Collections_Generic_IReadOnlyList_T;
+    }
+
+    /// <summary>
+    /// Determines whether the specified type represents a generic collection interface that is considered special, such
+    /// as ICollection{T} or IReadOnlyCollection{T}.
+    /// </summary>
+    /// <param name="type">
+    /// The type symbol to evaluate. Must represent a named type.
+    /// </param>
+    /// <returns>
+    /// true if the type is ICollection{T} or IReadOnlyCollection{T}; otherwise, false.
+    /// </returns>
+    public static bool IsCollectionInterfaceSpecial(this INamedTypeSymbol type)
+    {
+        var specialType = type.OriginalDefinition.SpecialType;
+        return specialType == SpecialType.System_Collections_Generic_ICollection_T ||
+               specialType == SpecialType.System_Collections_Generic_IReadOnlyCollection_T;
     }
 
     /// <summary>
@@ -93,7 +110,7 @@ internal static class TypeExtensions
                 return false;
             }
 
-            if (namedType.OriginalDefinition.IsCollectionInterfaceSpecial())
+            if (namedType.OriginalDefinition.IsEnumerableInterfaceSpecial())
             {
                 return true;
             }
@@ -169,6 +186,31 @@ internal static class TypeExtensions
             return true;
         }
 
+        return false;
+    }
+
+    public static ITypeSymbol? GetEnumerableParameterInConstructor(this ITypeSymbol type)
+    {
+        if (type is INamedTypeSymbol namedType && namedType.IsGenericType)
+        {
+            if (namedType.AllInterfaces.Any(i => i.OriginalDefinition.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T))
+            {
+                var constructor = namedType.Constructors
+                    .FirstOrDefault(m => m.MethodKind == MethodKind.Constructor &&
+                                         m.Parameters.Length == 1 &&
+                                         m.Parameters[0].Type is INamedTypeSymbol paramType &&
+                                         paramType.IsGenericType &&
+                                         (paramType.OriginalDefinition.IsEnumerableInterfaceSpecial() || 
+                                            paramType.IsArrayType() || 
+                                            namedType.AllInterfaces.Any(i => i.OriginalDefinition.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T)));
+                return constructor?.Parameters[0].Type;
+            }
+        }
+        return null;
+    }    
+
+    public static bool IsDictionaryType(this ITypeSymbol property)
+    {
         return false;
     }
 }

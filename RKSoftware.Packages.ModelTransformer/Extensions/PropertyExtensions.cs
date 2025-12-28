@@ -53,7 +53,7 @@ internal static class PropertyExtensions
                 return null;
             }
 
-            if (namedType.OriginalDefinition.IsCollectionInterfaceSpecial() ||
+            if (namedType.OriginalDefinition.IsEnumerableInterfaceSpecial() ||
                 namedType.AllInterfaces.Any(i => i.OriginalDefinition.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T))
             {
                 return namedType.TypeArguments[0];
@@ -61,5 +61,5 @@ internal static class PropertyExtensions
         }
 
         return null;
-    }    
+    } 
 }

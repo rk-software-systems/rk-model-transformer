@@ -170,16 +170,33 @@ namespace {hostNamespace}
                                 if (dic.TryGetValue(sourceArgumentType.OriginalDefinition.ToDisplayString(), out var complexArgumentTargets) &&
                                     complexArgumentTargets.Any(x => SymbolEqualityComparer.Default.Equals(x.Target, targetArgumentType)))
                                 {
-                                    if (mapping.PropertyType is INamedTypeSymbol nt && nt.Constructors.Any(c => c.Parameters.Length > 0))
-                                    {
-                                        str = $"new (source.{sourceProp.Name}.Select(x => x.Transform(({targetArgumentType.OriginalDefinition.ToDisplayString()}?)null)))";
-                                    }
-                                    else if (mapping.PropertyType.IsGenericInterfaceConstructable() || mapping.PropertyType.IsArrayType())
+                                    if (mapping.PropertyType.IsGenericInterfaceConstructable() || mapping.PropertyType.IsArrayType())
                                     {
                                         str = $"[.. source.{sourceProp.Name}.Select(x => x{(sourceArgumentType.IsNullable() ? "?" : "")}.Transform(({targetArgumentType.OriginalDefinition.ToDisplayString()}?)null))]";
                                     }
-                                } 
-                                else if(sourceArgumentType.IsPrimitiveOrString() && 
+                                    else if (mapping.PropertyType.GetEnumerableParameterInConstructor() is INamedTypeSymbol nt)
+                                    {
+                                        str = $"source.{sourceProp.Name}.Select(x => x{(sourceArgumentType.IsNullable() ? "?" : "")}.Transform(({targetArgumentType.OriginalDefinition.ToDisplayString()}?)null))";
+                                        if (nt.IsEnumerableInterfaceSpecial() && !nt.IsListInterfaceSpecial() && !nt.IsCollectionInterfaceSpecial())
+                                        {
+                                            
+                                        }
+                                        else if (nt.IsCollectionInterfaceSpecial() || nt.IsArrayType())
+                                        {
+                                            str = $"{str}.ToArray()";
+                                        }
+                                        else
+                                        {
+                                            str = $"{str}.ToList()";
+                                        }
+                                        str = $"new ({str})";
+                                    }
+                                    else if (mapping.PropertyType.IsDictionaryType())
+                                    {
+                                        str = $"source.{sourceProp.Name}.ToDictionary(x => x.Key, y => y.Value{(sourceArgumentType.IsNullable() ? "?" : "")}.Transform(({targetArgumentType.OriginalDefinition.ToDisplayString()}?)null))";
+                                    }
+                                }
+                                else if (sourceArgumentType.IsPrimitiveOrString() &&
                                         targetArgumentType.IsPrimitiveOrString() &&
                                         SymbolEqualityComparer.Default.Equals(sourceArgumentType, targetArgumentType))
                                 {
