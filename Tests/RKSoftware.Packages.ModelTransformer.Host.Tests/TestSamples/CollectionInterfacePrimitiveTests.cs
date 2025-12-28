@@ -1,8 +1,8 @@
-﻿using RKSoftware.Packages.ModelTransformer.Host.TestSamples.CollectionInterface;
+﻿using RKSoftware.Packages.ModelTransformer.Host.TestSamples.CollectionInterfacePrimitive;
 
 namespace RKSoftware.Packages.ModelTransformer.Host.Tests.TestSamples;
 
-public class CollectionInterfaceTests
+public class CollectionInterfacePrimitiveTests
 {
     #region IList
 
@@ -11,13 +11,14 @@ public class CollectionInterfaceTests
     {
         var domain = new CompanyDomain
         {
-            ProjectIList = GetDomains()
+            ProjectIList = ["12", "34", "56"]
         };
 
         var viewModel = domain.Transform();
 
         Assert.NotNull(viewModel);
         Assert.NotNull(viewModel.ProjectIList);
+        Assert.False(domain.ProjectIList == viewModel.ProjectIList);
 
         AssertEqualDomainsAndViewModels(domain.ProjectIList, viewModel.ProjectIList);
     }
@@ -42,12 +43,12 @@ public class CollectionInterfaceTests
     {
         var domain = new CompanyDomain
         {
-            ProjectIList = GetDomains()
+            ProjectIList = ["12", "34", "56"]
         };
 
         var viewModel = new CompanyViewModel
         {
-            ProjectIList = [.. GetViewModels()]
+            ProjectIList = ["46", "78", "11"]
         };
 
         AssertNotEqualDomainsAndViewModels(domain.ProjectIList, viewModel.ProjectIList);
@@ -57,6 +58,7 @@ public class CollectionInterfaceTests
         Assert.NotNull(updatedViewModel);
         Assert.NotNull(updatedViewModel.ProjectIList);
         Assert.Equal(viewModel, updatedViewModel);
+        Assert.False(domain.ProjectIList == viewModel.ProjectIList);
 
         AssertEqualDomainsAndViewModels(domain.ProjectIList, viewModel.ProjectIList);
     }
@@ -71,7 +73,7 @@ public class CollectionInterfaceTests
 
         var viewModel = new CompanyViewModel
         {
-            ProjectIList = [.. GetViewModels()]
+            ProjectIList = ["46", "78", "11"]
         };
 
         var updatedViewModel = domain.Transform(viewModel);
@@ -90,13 +92,14 @@ public class CollectionInterfaceTests
     {
         var domain = new CompanyDomain
         {
-            ProjectICollection = GetDomains()
+            ProjectICollection = [new DateTime(2020, 1, 1), new DateTime(2021, 2, 2), new DateTime(2022, 3, 3)]
         };
 
         var viewModel = domain.Transform();
 
         Assert.NotNull(viewModel);
         Assert.NotNull(viewModel.ProjectICollection);
+        Assert.False(domain.ProjectICollection == viewModel.ProjectICollection);
 
         AssertEqualDomainsAndViewModels(domain.ProjectICollection, viewModel.ProjectICollection);
     }
@@ -121,12 +124,12 @@ public class CollectionInterfaceTests
     {
         var domain = new CompanyDomain
         {
-            ProjectICollection = GetDomains()
+            ProjectICollection = [new DateTime(2020, 1, 1), new DateTime(2021, 2, 2), new DateTime(2022, 3, 3)]
         };
 
         var viewModel = new CompanyViewModel
         {
-            ProjectICollection = [.. GetViewModels()]
+            ProjectICollection = [new DateTime(2010, 1, 1), new DateTime(2011, 2, 2), new DateTime(2012, 3, 3)]
         };
 
         AssertNotEqualDomainsAndViewModels(domain.ProjectICollection, viewModel.ProjectICollection);
@@ -136,6 +139,7 @@ public class CollectionInterfaceTests
         Assert.NotNull(updatedViewModel);
         Assert.NotNull(updatedViewModel.ProjectICollection);
         Assert.Equal(viewModel, updatedViewModel);
+        Assert.False(domain.ProjectICollection == viewModel.ProjectICollection);
 
         AssertEqualDomainsAndViewModels(domain.ProjectICollection, viewModel.ProjectICollection);
     }
@@ -150,7 +154,7 @@ public class CollectionInterfaceTests
 
         var viewModel = new CompanyViewModel
         {
-            ProjectICollection = [.. GetViewModels()]
+            ProjectICollection = [new DateTime(2010, 1, 1), new DateTime(2011, 2, 2), new DateTime(2012, 3, 3)]
         };
 
         var updatedViewModel = domain.Transform(viewModel);
@@ -169,13 +173,14 @@ public class CollectionInterfaceTests
     {
         var domain = new CompanyDomain
         {
-            ProjectIEnumerable = GetDomains()
+            ProjectIEnumerable = [1, 2, 3]
         };
 
         var viewModel = domain.Transform();
 
         Assert.NotNull(viewModel);
         Assert.NotNull(viewModel.ProjectIEnumerable);
+        Assert.False(domain.ProjectIEnumerable == viewModel.ProjectIEnumerable);
 
         AssertEqualDomainsAndViewModels(domain.ProjectIEnumerable, viewModel.ProjectIEnumerable);
     }
@@ -200,12 +205,12 @@ public class CollectionInterfaceTests
     {
         var domain = new CompanyDomain
         {
-            ProjectIEnumerable = GetDomains()
+            ProjectIEnumerable = [1, 2, 3]
         };
 
         var viewModel = new CompanyViewModel
         {
-            ProjectIEnumerable = [.. GetViewModels()]
+            ProjectIEnumerable = [4, 5, 6]
         };
 
         AssertNotEqualDomainsAndViewModels(domain.ProjectIEnumerable, viewModel.ProjectIEnumerable);
@@ -215,6 +220,7 @@ public class CollectionInterfaceTests
         Assert.NotNull(updatedViewModel);
         Assert.NotNull(updatedViewModel.ProjectIEnumerable);
         Assert.Equal(viewModel, updatedViewModel);
+        Assert.False(domain.ProjectIEnumerable == viewModel.ProjectIEnumerable);
 
         AssertEqualDomainsAndViewModels(domain.ProjectIEnumerable, viewModel.ProjectIEnumerable);
     }
@@ -229,7 +235,7 @@ public class CollectionInterfaceTests
 
         var viewModel = new CompanyViewModel
         {
-            ProjectIEnumerable = [.. GetViewModels()]
+            ProjectIEnumerable = [4, 5, 6]
         };
 
         var updatedViewModel = domain.Transform(viewModel);
@@ -248,13 +254,14 @@ public class CollectionInterfaceTests
     {
         var domain = new CompanyDomain
         {
-            ProjectIReadOnlyCollection = GetDomains()
+            ProjectIReadOnlyCollection = [1, 2, 3]
         };
 
         var viewModel = domain.Transform();
 
         Assert.NotNull(viewModel);
         Assert.NotNull(viewModel.ProjectIReadOnlyCollection);
+        Assert.False(domain.ProjectIReadOnlyCollection == viewModel.ProjectIReadOnlyCollection);
 
         AssertEqualDomainsAndViewModels(domain.ProjectIReadOnlyCollection, viewModel.ProjectIReadOnlyCollection);
     }
@@ -279,12 +286,12 @@ public class CollectionInterfaceTests
     {
         var domain = new CompanyDomain
         {
-            ProjectIReadOnlyCollection = GetDomains()
+            ProjectIReadOnlyCollection = [1, 2, 3]
         };
 
         var viewModel = new CompanyViewModel
         {
-            ProjectIReadOnlyCollection = [.. GetViewModels()]
+            ProjectIReadOnlyCollection = [4, 5, 6]
         };
 
         AssertNotEqualDomainsAndViewModels(domain.ProjectIReadOnlyCollection, viewModel.ProjectIReadOnlyCollection);
@@ -294,6 +301,7 @@ public class CollectionInterfaceTests
         Assert.NotNull(updatedViewModel);
         Assert.NotNull(updatedViewModel.ProjectIReadOnlyCollection);
         Assert.Equal(viewModel, updatedViewModel);
+        Assert.False(domain.ProjectIReadOnlyCollection == viewModel.ProjectIReadOnlyCollection);
 
         AssertEqualDomainsAndViewModels(domain.ProjectIReadOnlyCollection, viewModel.ProjectIReadOnlyCollection);
     }
@@ -308,7 +316,7 @@ public class CollectionInterfaceTests
 
         var viewModel = new CompanyViewModel
         {
-            ProjectIReadOnlyCollection = [.. GetViewModels()]
+            ProjectIReadOnlyCollection = [4, 5, 6]
         };
 
         var updatedViewModel = domain.Transform(viewModel);
@@ -327,13 +335,14 @@ public class CollectionInterfaceTests
     {
         var domain = new CompanyDomain
         {
-            ProjectIReadOnlyList = GetDomains()
+            ProjectIReadOnlyList = [1, 2, 3]
         };
 
         var viewModel = domain.Transform();
 
         Assert.NotNull(viewModel);
         Assert.NotNull(viewModel.ProjectIReadOnlyList);
+        Assert.False(domain.ProjectIReadOnlyList == viewModel.ProjectIReadOnlyList);
 
         AssertEqualDomainsAndViewModels(domain.ProjectIReadOnlyList, viewModel.ProjectIReadOnlyList);
     }
@@ -358,12 +367,12 @@ public class CollectionInterfaceTests
     {
         var domain = new CompanyDomain
         {
-            ProjectIReadOnlyList = GetDomains()
+            ProjectIReadOnlyList = [1, 2, 3]
         };
 
         var viewModel = new CompanyViewModel
         {
-            ProjectIReadOnlyList = [.. GetViewModels()]
+            ProjectIReadOnlyList = [4, 5, 6]
         };
 
         AssertNotEqualDomainsAndViewModels(domain.ProjectIReadOnlyList, viewModel.ProjectIReadOnlyList);
@@ -373,6 +382,7 @@ public class CollectionInterfaceTests
         Assert.NotNull(updatedViewModel);
         Assert.NotNull(updatedViewModel.ProjectIReadOnlyList);
         Assert.Equal(viewModel, updatedViewModel);
+        Assert.False(domain.ProjectIReadOnlyList == viewModel.ProjectIReadOnlyList);
 
         AssertEqualDomainsAndViewModels(domain.ProjectIReadOnlyList, viewModel.ProjectIReadOnlyList);
     }
@@ -387,7 +397,7 @@ public class CollectionInterfaceTests
 
         var viewModel = new CompanyViewModel
         {
-            ProjectIReadOnlyList = [.. GetViewModels()]
+            ProjectIReadOnlyList = [4, 5, 6]
         };
 
         var updatedViewModel = domain.Transform(viewModel);
@@ -401,62 +411,26 @@ public class CollectionInterfaceTests
 
     #region helpers
 
-    private static List<ProjectDomain> GetDomains()
-    {
-        return
-            [
-                new()
-                {
-                    Id = 1,
-                    Name = "Project A"
-                },
-                new()
-                {
-                    Id = 2,
-                    Name = "Project B"
-                }
-            ];
-    }
-
-    private static IEnumerable<ProjectViewModel> GetViewModels()
-    {
-        return
-            [
-                new()
-                {
-                    Id = 2,
-                    Name = "Project C"
-                },
-                new()
-                {
-                    Id = 3,
-                    Name = "Project D"
-                }
-            ];
-    }
-
-    private static void AssertEqualDomainsAndViewModels(
-        IEnumerable<ProjectDomain> domains,
-        IEnumerable<ProjectViewModel> viewModels)
+    private static void AssertEqualDomainsAndViewModels<T>(
+        IEnumerable<T> domains,
+        IEnumerable<T> viewModels)
     {
         var count = domains.Count();
         Assert.Equal(count, viewModels.Count());
         for (int i = 0; i < count; i++)
         {
-            Assert.Equal(domains.ElementAt(i).Id, viewModels.ElementAt(i).Id);
-            Assert.Equal(domains.ElementAt(i).Name, viewModels.ElementAt(i).Name);
+            Assert.Equal(domains.ElementAt(i), viewModels.ElementAt(i));
         }
     }
 
-    private static void AssertNotEqualDomainsAndViewModels(
-        IEnumerable<ProjectDomain> domains,
-        IEnumerable<ProjectViewModel> viewModels)
+    private static void AssertNotEqualDomainsAndViewModels<T>(
+        IEnumerable<T> domains,
+        IEnumerable<T> viewModels)
     {
         var count = Math.Min(domains.Count(), viewModels.Count());        
         for (int i = 0; i < count; i++)
         {
-            Assert.NotEqual(domains.ElementAt(i).Id, viewModels.ElementAt(i).Id);
-            Assert.NotEqual(domains.ElementAt(i).Name, viewModels.ElementAt(i).Name);
+            Assert.NotEqual(domains.ElementAt(i), viewModels.ElementAt(i));
         }
     }
 

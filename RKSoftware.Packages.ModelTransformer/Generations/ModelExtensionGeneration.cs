@@ -163,18 +163,46 @@ namespace {hostNamespace}
                             var targetArgumentType = targetProp.Value.GetGenericArgumentType();
                             if (sourceArgumentType != null &&
                                 targetArgumentType != null &&
-                                (targetArgumentType.IsNullable() || !sourceArgumentType.IsNullable()) &&
-                               dic.TryGetValue(sourceArgumentType.OriginalDefinition.ToDisplayString(), out var complexArgumentTargets) &&
-                               complexArgumentTargets.Any(x => SymbolEqualityComparer.Default.Equals(x.Target, targetArgumentType)))
+                                (targetArgumentType.IsNullable() || !sourceArgumentType.IsNullable()))
                             {
                                 string? str = null;
-                                if (mapping.PropertyType is INamedTypeSymbol nt &&  nt.Constructors.Any(c => c.Parameters.Length > 0))
+
+                                if (dic.TryGetValue(sourceArgumentType.OriginalDefinition.ToDisplayString(), out var complexArgumentTargets) &&
+                                    complexArgumentTargets.Any(x => SymbolEqualityComparer.Default.Equals(x.Target, targetArgumentType)))
                                 {
-                                    str = $"new (source.{sourceProp.Name}.Select(x => x.Transform()))";
-                                }
-                                else if (mapping.PropertyType.IsGenericInterfaceConstructable())
+                                    if (mapping.PropertyType is INamedTypeSymbol nt && nt.Constructors.Any(c => c.Parameters.Length > 0))
+                                    {
+                                        str = $"new (source.{sourceProp.Name}.Select(x => x.Transform()))";
+                                    }
+                                    else if (mapping.PropertyType.IsGenericInterfaceConstructable() || mapping.PropertyType.IsArrayType())
+                                    {
+                                        str = $"[.. source.{sourceProp.Name}.Select(x => x{(sourceArgumentType.IsNullable() ? "?" : "")}.Transform())]";
+                                    }
+                                } 
+                                else if(sourceArgumentType.IsPrimitiveOrString() && 
+                                        targetArgumentType.IsPrimitiveOrString() &&
+                                        SymbolEqualityComparer.Default.Equals(sourceArgumentType, targetArgumentType))
                                 {
-                                    str = $"[.. source.{sourceProp.Name}.Select(x => x{(sourceArgumentType.IsNullable() ? "?" : "")}.Transform())]";
+                                    if (mapping.PropertyType is INamedTypeSymbol nt && nt.Constructors.Any(c => c.Parameters.Length > 0))
+                                    {
+                                        str = $"source.{sourceProp.Name}[..]";
+                                    }
+                                    else if (mapping.PropertyType.IsGenericInterfaceConstructable())
+                                    {
+                                        if (mapping.PropertyType is INamedTypeSymbol nts &&
+                                            nts.IsListInterfaceSpecial())
+                                        {
+                                            str = $"source.{sourceProp.Name}.ToList()";
+                                        }
+                                        else
+                                        {
+                                            str = $"source.{sourceProp.Name}.ToArray()";
+                                        }
+                                    }
+                                    else if (mapping.PropertyType.IsArrayType())
+                                    {
+                                        str = $"source.{sourceProp.Name}[..]";
+                                    }
                                 }
 
                                 if (str != null)

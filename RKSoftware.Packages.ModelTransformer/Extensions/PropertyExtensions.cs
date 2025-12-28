@@ -9,7 +9,9 @@ internal static class PropertyExtensions
         var sourceTypeNonNullable = source.Type.GetNonNullable();
         var targetTypeNonNullable = target.Type.GetNonNullable();
 
-        if (!sourceTypeNonNullable.Equals(targetTypeNonNullable, SymbolEqualityComparer.Default))
+        if ((sourceTypeNonNullable.IsReferenceType && sourceTypeNonNullable.SpecialType != SpecialType.System_String) ||
+            (targetTypeNonNullable.IsReferenceType && sourceTypeNonNullable.SpecialType != SpecialType.System_String) ||
+            !sourceTypeNonNullable.Equals(targetTypeNonNullable, SymbolEqualityComparer.Default))
         {
             return true;
         }
@@ -17,11 +19,13 @@ internal static class PropertyExtensions
         var isSourceNullable = source.IsNullable();
         var isTargetNullable = target.IsNullable();
 
+        // disallow conversion from nullable to non-nullable
         return !isTargetNullable && isSourceNullable;
     }
 
     public static bool IsNullable(this IPropertySymbol prop)
     {
+        // check for nullable value type or nullable reference type
         return prop.Type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T ||
                (prop.Type.IsReferenceType && prop.NullableAnnotation == NullableAnnotation.Annotated);
     }
@@ -30,24 +34,13 @@ internal static class PropertyExtensions
     {
         var type = property.Type;
 
-        if (type.SpecialType == SpecialType.System_String)
+        // handle primitive types and string
+        if (type.IsPrimitiveOrString())
         {
             return null;
         }
 
-        if (type.IsValueType && type.SpecialType != SpecialType.None)
-        {
-            return null;
-        }
-
-        if (type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T &&
-            type is INamedTypeSymbol nt &&
-            nt.TypeArguments.Length == 1 &&
-            nt.TypeArguments[0].SpecialType != SpecialType.None)
-        {
-            return null;
-        }
-
+        // handle array types
         if (type is IArrayTypeSymbol arrayType)
         {
             return arrayType.ElementType;

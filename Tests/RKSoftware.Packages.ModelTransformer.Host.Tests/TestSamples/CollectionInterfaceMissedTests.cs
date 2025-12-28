@@ -1,8 +1,8 @@
-﻿using RKSoftware.Packages.ModelTransformer.Host.TestSamples.CollectionInterface;
+﻿using RKSoftware.Packages.ModelTransformer.Host.TestSamples.CollectionInterfaceMissed;
 
 namespace RKSoftware.Packages.ModelTransformer.Host.Tests.TestSamples;
 
-public class CollectionInterfaceTests
+public class CollectionInterfaceMissedTests
 {
     #region IList
 

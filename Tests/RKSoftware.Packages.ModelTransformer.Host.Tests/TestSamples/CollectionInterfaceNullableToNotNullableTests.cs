@@ -1,8 +1,8 @@
-﻿using RKSoftware.Packages.ModelTransformer.Host.TestSamples.CollectionInterface;
+﻿using RKSoftware.Packages.ModelTransformer.Host.TestSamples.CollectionInterfaceNullableToNotNullable;
 
 namespace RKSoftware.Packages.ModelTransformer.Host.Tests.TestSamples;
 
-public class CollectionInterfaceTests
+public class CollectionInterfaceNullableToNotNullableTests
 {
     #region IList
 
@@ -401,7 +401,7 @@ public class CollectionInterfaceTests
 
     #region helpers
 
-    private static List<ProjectDomain> GetDomains()
+    private static List<ProjectDomain?> GetDomains()
     {
         return
             [
@@ -410,6 +410,7 @@ public class CollectionInterfaceTests
                     Id = 1,
                     Name = "Project A"
                 },
+                null,
                 new()
                 {
                     Id = 2,
@@ -426,7 +427,7 @@ public class CollectionInterfaceTests
                 {
                     Id = 2,
                     Name = "Project C"
-                },
+                },                
                 new()
                 {
                     Id = 3,
@@ -436,27 +437,35 @@ public class CollectionInterfaceTests
     }
 
     private static void AssertEqualDomainsAndViewModels(
-        IEnumerable<ProjectDomain> domains,
-        IEnumerable<ProjectViewModel> viewModels)
+        IEnumerable<ProjectDomain?> domains,
+        IEnumerable<ProjectViewModel?> viewModels)
     {
+        domains = domains.Where(x => x != null);
         var count = domains.Count();
         Assert.Equal(count, viewModels.Count());
         for (int i = 0; i < count; i++)
         {
-            Assert.Equal(domains.ElementAt(i).Id, viewModels.ElementAt(i).Id);
-            Assert.Equal(domains.ElementAt(i).Name, viewModels.ElementAt(i).Name);
+            if (domains.ElementAt(i) == null)
+            {
+                Assert.Null(viewModels.ElementAt(i));
+            }
+            else
+            {
+                Assert.Equal(domains.ElementAt(i)?.Id, viewModels.ElementAt(i)?.Id);
+                Assert.Equal(domains.ElementAt(i)?.Name, viewModels.ElementAt(i)?.Name);
+            }
         }
     }
 
     private static void AssertNotEqualDomainsAndViewModels(
-        IEnumerable<ProjectDomain> domains,
-        IEnumerable<ProjectViewModel> viewModels)
+        IEnumerable<ProjectDomain?> domains,
+        IEnumerable<ProjectViewModel?> viewModels)
     {
-        var count = Math.Min(domains.Count(), viewModels.Count());        
+        var count = Math.Min(domains.Count(), viewModels.Count());
         for (int i = 0; i < count; i++)
         {
-            Assert.NotEqual(domains.ElementAt(i).Id, viewModels.ElementAt(i).Id);
-            Assert.NotEqual(domains.ElementAt(i).Name, viewModels.ElementAt(i).Name);
+            Assert.NotEqual(domains.ElementAt(i)?.Id, viewModels.ElementAt(i)?.Id);
+            Assert.NotEqual(domains.ElementAt(i)?.Name, viewModels.ElementAt(i)?.Name);
         }
     }
 
