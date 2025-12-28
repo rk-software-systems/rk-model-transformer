@@ -1,8 +1,8 @@
-﻿using RKSoftware.Packages.ModelTransformer.Host.TestSamples.ArrayPrimitive;
+﻿using RKSoftware.Packages.ModelTransformer.Host.TestSamples.ArrayPrimitiveNullableToNotNullable;
 
 namespace RKSoftware.Packages.ModelTransformer.Host.Tests.TestSamples;
 
-public class ArrayPrimitiveTests
+public class ArrayPrimitiveNullableToNotNullableTests
 {
     #region Strings
 
@@ -11,7 +11,7 @@ public class ArrayPrimitiveTests
     {
         var domain = new CompanyDomain
         {
-            ProjectNames = ["p12", "p34", "p56"]
+            ProjectNames = ["p12", null, "p34", "p56"]
         };
 
         var viewModel = domain.Transform();
@@ -43,7 +43,7 @@ public class ArrayPrimitiveTests
     {
         var domain = new CompanyDomain
         {
-            ProjectNames = ["p12", "p34", "p56"]
+            ProjectNames = ["p12", null, "p34", "p56"]
         };
 
         var viewModel = new CompanyViewModel
@@ -92,16 +92,15 @@ public class ArrayPrimitiveTests
     {
         var domain = new CompanyDomain
         {
-            ProjectIds = [1, 2, 3]
+            ProjectIds = [1, null, 2, 3]
         };
 
         var viewModel = domain.Transform();
 
         Assert.NotNull(viewModel);
         Assert.NotNull(viewModel.ProjectIds);
-        Assert.False(domain.ProjectIds == viewModel.ProjectIds);
 
-        AssertEqualDomainsAndViewModels(domain.ProjectIds, viewModel.ProjectIds);
+        AssertEqualDomainsAndViewModels<int?>(domain.ProjectIds, viewModel.ProjectIds.Cast<int?>());
     }
 
     [Fact]
@@ -124,7 +123,7 @@ public class ArrayPrimitiveTests
     {
         var domain = new CompanyDomain
         {
-            ProjectIds = [1, 2, 3]
+            ProjectIds = [1, null, 2, 3]
         };
 
         var viewModel = new CompanyViewModel
@@ -132,16 +131,15 @@ public class ArrayPrimitiveTests
             ProjectIds = [4, 5, 6]
         };
 
-        AssertNotEqualDomainsAndViewModels(domain.ProjectIds, viewModel.ProjectIds);
+        AssertNotEqualDomainsAndViewModels<int?>(domain.ProjectIds, viewModel.ProjectIds.Cast<int?>());
 
         var updatedViewModel = domain.Transform(viewModel);
 
         Assert.NotNull(updatedViewModel);
         Assert.NotNull(updatedViewModel.ProjectIds);
         Assert.Equal(viewModel, updatedViewModel);
-        Assert.False(domain.ProjectIds == viewModel.ProjectIds);
 
-        AssertEqualDomainsAndViewModels(domain.ProjectIds, viewModel.ProjectIds);
+        AssertEqualDomainsAndViewModels<int?>(domain.ProjectIds, viewModel.ProjectIds.Cast<int?>());
     }
 
     [Fact]
@@ -172,6 +170,7 @@ public class ArrayPrimitiveTests
         IEnumerable<T> domains,
         IEnumerable<T> viewModels)
     {
+        domains = domains.Where(d => d != null);
         var count = domains.Count();
         Assert.Equal(count, viewModels.Count());
         for (int i = 0; i < count; i++)

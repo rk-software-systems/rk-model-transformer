@@ -1,8 +1,8 @@
-﻿using RKSoftware.Packages.ModelTransformer.Host.TestSamples.ArrayComplex;
+﻿using RKSoftware.Packages.ModelTransformer.Host.TestSamples.ArrayComplexNullableToNotNullable;
 
 namespace RKSoftware.Packages.ModelTransformer.Host.Tests.TestSamples;
 
-public class ArrayComplexTests
+public class ArrayComplexNullableToNotNullableTests
 {
     [Fact]
     public void TestCreateViewModelToArray()
@@ -81,7 +81,7 @@ public class ArrayComplexTests
 
     #region helpers
 
-    private static ProjectDomain[] GetDomains()
+    private static ProjectDomain?[] GetDomains()
     {
         return
             [
@@ -90,6 +90,7 @@ public class ArrayComplexTests
                     Id = 1,
                     Name = "Project A"
                 },
+                null,
                 new()
                 {
                     Id = 2,
@@ -115,24 +116,25 @@ public class ArrayComplexTests
             ];
     }
 
-    private static void AssertEqualDomainsAndViewModels(ProjectDomain[] domains, ProjectViewModel[] viewModels)
+    private static void AssertEqualDomainsAndViewModels(ProjectDomain?[] domains, ProjectViewModel?[] viewModels)
     {
+        domains = domains.Where(x => x != null).ToArray();
         var count = domains.Length;
         Assert.Equal(count, viewModels.Length);
         for (int i = 0; i < count; i++)
         {
-            Assert.Equal(domains[i].Id, viewModels[i].Id);
-            Assert.Equal(domains[i].Name, viewModels[i].Name);
+            Assert.Equal(domains[i]?.Id, viewModels[i]?.Id);
+            Assert.Equal(domains[i]?.Name, viewModels[i]?.Name);
         }
     }
 
-    private static void AssertNotEqualDomainsAndViewModels(ProjectDomain[] domains, ProjectViewModel[] viewModels)
+    private static void AssertNotEqualDomainsAndViewModels(ProjectDomain?[] domains, ProjectViewModel?[] viewModels)
     {
         var count = Math.Min(domains.Length, viewModels.Length);        
         for (int i = 0; i < count; i++)
         {
-            Assert.NotEqual(domains[i].Id, viewModels[i].Id);
-            Assert.NotEqual(domains[i].Name, viewModels[i].Name);
+            Assert.NotEqual(domains[i]?.Id, viewModels[i]?.Id);
+            Assert.NotEqual(domains[i]?.Name, viewModels[i]?.Name);
         }
     }
 

@@ -1,8 +1,8 @@
-﻿using RKSoftware.Packages.ModelTransformer.Host.TestSamples.ArrayPrimitive;
+﻿using RKSoftware.Packages.ModelTransformer.Host.TestSamples.ArrayPrimitiveNullable;
 
 namespace RKSoftware.Packages.ModelTransformer.Host.Tests.TestSamples;
 
-public class ArrayPrimitiveTests
+public class ArrayPrimitiveNullableTests
 {
     #region Strings
 
@@ -11,7 +11,7 @@ public class ArrayPrimitiveTests
     {
         var domain = new CompanyDomain
         {
-            ProjectNames = ["p12", "p34", "p56"]
+            ProjectNames = ["p12", null, "p34", "p56"]
         };
 
         var viewModel = domain.Transform();
@@ -43,12 +43,12 @@ public class ArrayPrimitiveTests
     {
         var domain = new CompanyDomain
         {
-            ProjectNames = ["p12", "p34", "p56"]
+            ProjectNames = ["p12", null, "p34", "p56"]
         };
 
         var viewModel = new CompanyViewModel
         {
-            ProjectNames = ["p46", "p78", "p11"]
+            ProjectNames = ["p46", "p78", "p11", null]
         };
 
         AssertNotEqualDomainsAndViewModels(domain.ProjectNames, viewModel.ProjectNames);
@@ -73,7 +73,7 @@ public class ArrayPrimitiveTests
 
         var viewModel = new CompanyViewModel
         {
-            ProjectNames = ["p46", "p78", "p11"]
+            ProjectNames = ["p46", null, "p78", "p11"]
         };
 
         var updatedViewModel = domain.Transform(viewModel);
@@ -92,7 +92,7 @@ public class ArrayPrimitiveTests
     {
         var domain = new CompanyDomain
         {
-            ProjectIds = [1, 2, 3]
+            ProjectIds = [1, null, 2, 3]
         };
 
         var viewModel = domain.Transform();
@@ -124,12 +124,12 @@ public class ArrayPrimitiveTests
     {
         var domain = new CompanyDomain
         {
-            ProjectIds = [1, 2, 3]
+            ProjectIds = [1, null, 2, 3]
         };
 
         var viewModel = new CompanyViewModel
         {
-            ProjectIds = [4, 5, 6]
+            ProjectIds = [4, 5, 6, null]
         };
 
         AssertNotEqualDomainsAndViewModels(domain.ProjectIds, viewModel.ProjectIds);
@@ -154,7 +154,7 @@ public class ArrayPrimitiveTests
 
         var viewModel = new CompanyViewModel
         {
-            ProjectIds = [4, 5, 6]
+            ProjectIds = [4, 5, 6, null]
         };
 
         var updatedViewModel = domain.Transform(viewModel);
