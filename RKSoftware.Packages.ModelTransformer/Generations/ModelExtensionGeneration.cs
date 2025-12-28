@@ -37,7 +37,7 @@ namespace {hostNamespace}
     }
 
 
-    public static string GenerateExtensionMethod(this SourceProductionContext context, AttributeDataModel attr, Dictionary<string, List<AttributeDataModel>> dic)
+    public static string GenerateExtensionMethod(AttributeDataModel attr, Dictionary<string, List<AttributeDataModel>> dic)
     {
         var variableCreationCode = string.Empty;
         var methodsCode = string.Empty;
@@ -45,7 +45,7 @@ namespace {hostNamespace}
         var postConstructorVariableMappingCode = string.Empty;
         var variableMappingCode = string.Empty;
 
-        var mappings = GeneratePropertyMappings(context, attr, dic);
+        var mappings = GeneratePropertyMappings(attr, dic);
 
         if (mappings.Count > 0)
         {
@@ -131,7 +131,7 @@ namespace {hostNamespace}
 
     #region helpers
 
-    private static List<PropertyMappingModel> GeneratePropertyMappings(SourceProductionContext context, AttributeDataModel attr, Dictionary<string, List<AttributeDataModel>> dic)
+    private static List<PropertyMappingModel> GeneratePropertyMappings(AttributeDataModel attr, Dictionary<string, List<AttributeDataModel>> dic)
     {
         var mappings = new List<PropertyMappingModel>();
 
@@ -155,7 +155,7 @@ namespace {hostNamespace}
                         if (dic.TryGetValue(sourceProp.Type.OriginalDefinition.ToDisplayString(), out var complexTargets) &&
                             complexTargets.Any(x => SymbolEqualityComparer.Default.Equals(x.Target, targetProp.Value.Type)))
                         {
-                            mappingCode = $"source.{sourceProp.Name}{(sourceProp.IsNullable() ? "?" : "")}.Transform()";
+                            mappingCode = $"source.{sourceProp.Name}{(sourceProp.IsNullable() ? "?" : "")}.Transform(({mapping.PropertyType.OriginalDefinition.ToDisplayString()}?)null)";
                         }
                         else
                         {
@@ -172,11 +172,11 @@ namespace {hostNamespace}
                                 {
                                     if (mapping.PropertyType is INamedTypeSymbol nt && nt.Constructors.Any(c => c.Parameters.Length > 0))
                                     {
-                                        str = $"new (source.{sourceProp.Name}.Select(x => x.Transform()))";
+                                        str = $"new (source.{sourceProp.Name}.Select(x => x.Transform(({targetArgumentType.OriginalDefinition.ToDisplayString()}?)null)))";
                                     }
                                     else if (mapping.PropertyType.IsGenericInterfaceConstructable() || mapping.PropertyType.IsArrayType())
                                     {
-                                        str = $"[.. source.{sourceProp.Name}.Select(x => x{(sourceArgumentType.IsNullable() ? "?" : "")}.Transform())]";
+                                        str = $"[.. source.{sourceProp.Name}.Select(x => x{(sourceArgumentType.IsNullable() ? "?" : "")}.Transform(({targetArgumentType.OriginalDefinition.ToDisplayString()}?)null))]";
                                     }
                                 } 
                                 else if(sourceArgumentType.IsPrimitiveOrString() && 

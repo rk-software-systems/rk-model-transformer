@@ -116,7 +116,7 @@ public class ModelTransformerIncrementalGenerator : IIncrementalGenerator
                         context.CreateNotNullablePropertyCanNotBeIgnoredWarning(tr.Location, attr.Source, attr.Target, notNullableIgnoredProperties);
                     }
 
-                    var exMethod = context.GenerateExtensionMethod(attr, groupedBySource);
+                    var exMethod = ModelExtensionGeneration.GenerateExtensionMethod(attr, groupedBySource);
                     exMethods.Add(exMethod);
                 }
 
