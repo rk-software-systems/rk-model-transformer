@@ -1,7 +1,6 @@
 ﻿using System.Collections.Frozen;
 using Microsoft.CodeAnalysis;
 using RKSoftware.Packages.ModelTransformer.Extensions;
-using RKSoftware.Packages.ModelTransformer.Generations;
 
 namespace RKSoftware.Packages.ModelTransformer.Models;
 

@@ -4,7 +4,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using RKSoftware.Packages.ModelTransformer.Builders;
 using RKSoftware.Packages.ModelTransformer.Extensions;
-using RKSoftware.Packages.ModelTransformer.Generations;
 using RKSoftware.Packages.ModelTransformer.Models;
 
 namespace RKSoftware.Packages.ModelTransformer;
@@ -30,8 +29,8 @@ public class ModelTransformerIncrementalGenerator : IIncrementalGenerator
     {
         // Add the marker attribute to the compilation
         context.RegisterPostInitializationOutput(ctx => ctx.AddSource(
-            $"{RegistrationAttributeGeneration.Name}.g.cs", 
-            SourceText.From(RegistrationAttributeGeneration.SourceCode, Encoding.UTF8))
+            $"{RegistrationAttributeCodeBuilder.Name}.g.cs", 
+            SourceText.From(RegistrationAttributeCodeBuilder.SourceCode, Encoding.UTF8))
         );
 
         IncrementalValuesProvider<RegistrationModel?> classesToGenerate = context.SyntaxProvider
@@ -72,7 +71,7 @@ public class ModelTransformerIncrementalGenerator : IIncrementalGenerator
                 var name = attributeClass.OriginalDefinition.ToDisplayString();                               
 
                 // Is the attribute the marker attribute?
-                if ($"{RegistrationAttributeGeneration.Namespace}.{RegistrationAttributeGeneration.GenericName}".Equals(name, StringComparison.Ordinal))
+                if ($"{RegistrationAttributeCodeBuilder.Namespace}.{RegistrationAttributeCodeBuilder.GenericName}".Equals(name, StringComparison.Ordinal))
                 {
                     var attr = new AttributeDataModel(registrationModel.HostNamespace, attributeData);
                     registrationModel.Attributes.Add(attr);
