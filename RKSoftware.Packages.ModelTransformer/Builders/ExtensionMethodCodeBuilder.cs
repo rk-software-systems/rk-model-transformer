@@ -4,7 +4,7 @@ using RKSoftware.Packages.ModelTransformer.Models;
 
 namespace RKSoftware.Packages.ModelTransformer.Builders;
 
-internal class ExtensionMethodCodeBuilder
+internal sealed class ExtensionMethodCodeBuilder
 {
     private readonly AttributeDataModel _attr;
 

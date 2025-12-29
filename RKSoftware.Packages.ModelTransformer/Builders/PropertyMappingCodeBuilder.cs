@@ -2,7 +2,7 @@
 
 namespace RKSoftware.Packages.ModelTransformer.Builders;
 
-internal class PropertyMappingCodeBuilder
+internal sealed class PropertyMappingCodeBuilder
 {
     private string _variableCreationCode = string.Empty;
     private string _constructorVariableMappingCode = string.Empty;

@@ -1,6 +1,6 @@
 ﻿namespace RKSoftware.Packages.ModelTransformer.Builders;
 
-internal class RegistrationAttributeCodeBuilder
+internal sealed class RegistrationAttributeCodeBuilder
 {
     public const string Namespace = "RKSoftware.Packages.ModelTransformer.Attributes";
     public const string Name = "ModelTransformerRegistrationAttribute";

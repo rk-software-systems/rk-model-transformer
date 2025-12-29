@@ -1,6 +1,6 @@
 ﻿namespace RKSoftware.Packages.ModelTransformer.Builders;
 
-internal class ExtensionClassCodeBuilder(string hostNamespace, string className, List<ExtensionMethodCodeBuilder> methods)
+internal sealed class ExtensionClassCodeBuilder(string hostNamespace, string className, List<ExtensionMethodCodeBuilder> methods)
 {
     public List<ExtensionMethodCodeBuilder> Methods { get; } = methods;
 
