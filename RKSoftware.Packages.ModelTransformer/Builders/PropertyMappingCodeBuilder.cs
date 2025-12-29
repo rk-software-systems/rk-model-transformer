@@ -4,74 +4,75 @@ namespace RKSoftware.Packages.ModelTransformer.Builders;
 
 internal sealed class PropertyMappingCodeBuilder
 {
-    private string _variableCreationCode = string.Empty;
-    private string _constructorVariableMappingCode = string.Empty;
-    private string _postConstructorVariableMappingCode = string.Empty;
+    private string _variableMappingMethodCode = string.Empty;
+    private string _variableMappingCodeInConstructor = string.Empty;
+    private string _variableMappingCodeAfterConstructor = string.Empty;
     private string _variableMappingCode = string.Empty;
-    private string _methodCode = string.Empty;
+    private string _mappingMethodCode = string.Empty;
+    private string _mappingCode = string.Empty;
 
 
-    public string VariableCreationCode => _variableCreationCode;
+    public string VariableMappingMethodCode => _variableMappingMethodCode;
 
-    public string ConstructorVariableMappingCode => _constructorVariableMappingCode;
+    public string VariableMappingCodeInConstructor => _variableMappingCodeInConstructor;
 
-    public string PostConstructorVariableMappingCode => _postConstructorVariableMappingCode;
+    public string VariableMappingCodeAfterConstructor => _variableMappingCodeAfterConstructor;
 
     public string VariableMappingCode => _variableMappingCode;
 
-    public string MethodCode => _methodCode;
+    public string MappingMethodCode => _mappingMethodCode;
 
 
-    public void CreateVariableByDefaultMappingMethod(PropertyMappingModel mapping)
+    public void SetVariableDefaultMappingMethodCode(PropertyMappingModel mapping)
     {
-        _variableCreationCode =
+        _variableMappingMethodCode =
 @$"{Constants.Indent__3}var {mapping.VariableName} = {mapping.DefaultMethodName}(source);
 {Constants.Indent__3}{mapping.MethodName}(source, ref {mapping.VariableName});";
     }
 
-    public void CreateVariableByRequiredMappingMethod(PropertyMappingModel mapping)
+    public void SetVariableRequiredMappingMethodCode(PropertyMappingModel mapping)
     {
-        _variableCreationCode =
+        _variableMappingMethodCode =
 @$"{Constants.Indent__3}var {mapping.VariableName} = {mapping.MethodName}(source);";
     }
 
-    public void SetVariableInConstructor(PropertyMappingModel mapping)
+    public void SetVariableMappingCodeInConstructor(PropertyMappingModel mapping)
     {
-        _constructorVariableMappingCode =
+        _variableMappingCodeInConstructor =
 $@"{Constants.Indent____5}{mapping.PropertyName} : {mapping.VariableName}";
     }
 
-    public void SetVariablePostConstructor(PropertyMappingModel mapping)
+    public void SetVariableMappingCodeAfterConstructor(PropertyMappingModel mapping)
     {
-        _postConstructorVariableMappingCode =
+        _variableMappingCodeAfterConstructor =
 $@"{Constants.Indent____5}{mapping.PropertyName} = {mapping.VariableName}";
     }
 
-    public void SetVariable(PropertyMappingModel mapping)
+    public void SetVariableMappingCode(PropertyMappingModel mapping)
     {
         _variableMappingCode =
 $@"{Constants.Indent___4}target.{mapping.PropertyName} = {mapping.VariableName};";
     }
 
-    public void CreateDefaultMappingMethod(PropertyMappingModel mapping, AttributeDataModel attr, string code)
+    public void SetDefaultMappingMethodCode(PropertyMappingModel mapping, AttributeDataModel attr, string code)
     {
-        _methodCode = 
+        _mappingMethodCode = 
 $@"{Constants.Indent_2}private static {mapping.PropertyType.ToDisplayString()} {mapping.DefaultMethodName}({attr.Source.ToDisplayString()} source)
 {Constants.Indent_2}{{
 {Constants.Indent__3}return {code};
 {Constants.Indent_2}}}";
     }
 
-    public void CreateOptionalMappingMethodToBeImplemented(PropertyMappingModel mapping, AttributeDataModel attr)
+    public void AddOptionalMappingMethodCode(PropertyMappingModel mapping, AttributeDataModel attr)
     {
        var code =
 $@"{Constants.Indent_2}static partial void {mapping.MethodName}({attr.Source.ToDisplayString()} source, ref {mapping.PropertyType.ToDisplayString()} target);";
-        _methodCode = $"{_methodCode}{Constants.NewLine}{code}";
+        _mappingMethodCode = $"{_mappingMethodCode}{Constants.NewLine}{code}";
     }
 
-    public void CreateRequiredMappingMethodToBeImplemented(PropertyMappingModel mapping, AttributeDataModel attr)
+    public void SetRequiredMappingMethodCode(PropertyMappingModel mapping, AttributeDataModel attr)
     {
-        _methodCode = 
+        _mappingMethodCode = 
 $@"{Constants.Indent_2}private static partial {mapping.PropertyType.ToDisplayString()} {mapping.MethodName}({attr.Source.ToDisplayString()} source);";
     }
 }

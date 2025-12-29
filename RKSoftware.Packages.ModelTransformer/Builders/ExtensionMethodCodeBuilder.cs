@@ -123,38 +123,38 @@ internal sealed class ExtensionMethodCodeBuilder
             {
                 if (mappingCode != null)
                 {
-                    propBuilder.CreateVariableByDefaultMappingMethod(mapping);
+                    propBuilder.SetVariableDefaultMappingMethodCode(mapping);
                 }
                 else
                 {
-                    propBuilder.CreateVariableByRequiredMappingMethod(mapping);
+                    propBuilder.SetVariableRequiredMappingMethodCode(mapping);
                 }
             }
 
             if (mapping.IsConstructorParam)
             {
-                propBuilder.SetVariableInConstructor(mapping);
+                propBuilder.SetVariableMappingCodeInConstructor(mapping);
             }
             else
             {
-                propBuilder.SetVariablePostConstructor(mapping);
+                propBuilder.SetVariableMappingCodeAfterConstructor(mapping);
             }
 
             if (!mapping.IsReadonly && !isIgnored)
             {
-                propBuilder.SetVariable(mapping);
+                propBuilder.SetVariableMappingCode(mapping);
             }
 
             if (!isIgnored)
             {
                 if (mappingCode != null)
                 {
-                    propBuilder.CreateDefaultMappingMethod(mapping, attr, mappingCode);
-                    propBuilder.CreateOptionalMappingMethodToBeImplemented(mapping, attr);
+                    propBuilder.SetDefaultMappingMethodCode(mapping, attr, mappingCode);
+                    propBuilder.AddOptionalMappingMethodCode(mapping, attr);
                 }
                 else
                 {
-                    propBuilder.CreateRequiredMappingMethodToBeImplemented(mapping, attr);
+                    propBuilder.SetRequiredMappingMethodCode(mapping, attr);
                 }
             }
             _properties.Add(propBuilder);
@@ -163,23 +163,24 @@ internal sealed class ExtensionMethodCodeBuilder
 
     public string Generate()
     {
-        var variableCreationCode = string.Empty;
-        var methodsCode = string.Empty;
-        var constructorVariableMappingCode = string.Empty;
-        var postConstructorVariableMappingCode = string.Empty;
+        var variableMappingMethodCode = string.Empty;        
+        var variableMappingCodeInConstructor = string.Empty;
+        var variableMappingCodeAfterConstructor = string.Empty;
+
         var variableMappingCode = string.Empty;
+        var mappingMethodCode = string.Empty;
 
         if (_properties.Count > 0)
         {
-            variableCreationCode = CreateVariableCreateionCode();
+            variableMappingMethodCode = CreateVariableMappingMethodCode();
 
-            constructorVariableMappingCode = CreateConstructorVariableMappingCode();
+            variableMappingCodeInConstructor = CreateVariableMappingCodeInConstructor();
 
-            postConstructorVariableMappingCode = CreatePostConstructorVariableMappingCode();
+            variableMappingCodeAfterConstructor = CreateVariableMappingCodeAfterConstructor();
 
             variableMappingCode = CreateVariableMappingCode();
 
-            methodsCode = CreateMethodsCode();
+            mappingMethodCode = CreateMappingMethodCode();
         }
 
         var targetName = _attr.Target.Name;
@@ -195,12 +196,12 @@ internal sealed class ExtensionMethodCodeBuilder
 {Constants.Indent__3}{{
 {Constants.Indent___4}throw new System.ArgumentNullException(nameof(source));
 {Constants.Indent__3}}}
-{variableCreationCode}
+{variableMappingMethodCode}
 {Constants.Indent__3}if (target == null)
 {Constants.Indent__3}{{
-{Constants.Indent___4}target = new {targetTypeName} ({constructorVariableMappingCode})
+{Constants.Indent___4}target = new {targetTypeName} ({variableMappingCodeInConstructor})
 {Constants.Indent___4}{{
-{postConstructorVariableMappingCode}
+{variableMappingCodeAfterConstructor}
 {Constants.Indent___4}}};
 {Constants.Indent__3}}}
 {Constants.Indent__3}else
@@ -209,70 +210,70 @@ internal sealed class ExtensionMethodCodeBuilder
 {Constants.Indent__3}}}
 {Constants.Indent__3}return target;
 {Constants.Indent_2}}}
-{methodsCode}
+{mappingMethodCode}
 {Constants.Indent_2}#endregion
 ";
         return str;
     }
 
-    private string CreateVariableCreateionCode()
+    private string CreateVariableMappingMethodCode()
     {
-        var variableCreations = _properties
-                .Select(x => x.VariableCreationCode)
+        var code = _properties
+                .Select(x => x.VariableMappingMethodCode)
                 .Where(x => !string.IsNullOrWhiteSpace(x))
                 .ToList();
 
-        return variableCreations.Count > 0
-            ? $"{Constants.NewLine}{string.Join($"{Constants.NewLine}{Constants.NewLine}", variableCreations)}{Constants.NewLine}"
+        return code.Count > 0
+            ? $"{Constants.NewLine}{string.Join($"{Constants.NewLine}{Constants.NewLine}", code)}{Constants.NewLine}"
             : string.Empty;
     }
 
-    private string CreateConstructorVariableMappingCode()
+    private string CreateVariableMappingCodeInConstructor()
     {
-        var constructorVariableMappings = _properties
-                .Select(x => x.ConstructorVariableMappingCode)
+        var code = _properties
+                .Select(x => x.VariableMappingCodeInConstructor)
                 .Where(x => !string.IsNullOrWhiteSpace(x))
                 .ToList();
 
-        return constructorVariableMappings.Count > 0 ?
-             $"{Constants.NewLine}{string.Join($",{Constants.NewLine}", constructorVariableMappings)}" :
+        return code.Count > 0 ?
+             $"{Constants.NewLine}{string.Join($",{Constants.NewLine}", code)}" :
              string.Empty;
     }
 
-    private string CreatePostConstructorVariableMappingCode()
+    private string CreateVariableMappingCodeAfterConstructor()
     {
-        var postConstructorVariableMappings = _properties
-                .Select(x => x.PostConstructorVariableMappingCode)
+        var code = _properties
+                .Select(x => x.VariableMappingCodeAfterConstructor)
                 .Where(x => !string.IsNullOrWhiteSpace(x))
                 .ToList();
 
-        return postConstructorVariableMappings.Count > 0 ?
-             string.Join($",{Constants.NewLine}", postConstructorVariableMappings) :
+        return code.Count > 0 ?
+             string.Join($",{Constants.NewLine}", code) :
              string.Empty;
     }
 
     private string CreateVariableMappingCode()
     {
-        var variableMappings = _properties
+        var code = _properties
                 .Select(x => x.VariableMappingCode)
                 .Where(x => !string.IsNullOrWhiteSpace(x))
                 .ToList();
 
-        return variableMappings.Count > 0 ?
-             string.Join($"{Constants.NewLine}", variableMappings) :
+        return code.Count > 0 ?
+             string.Join($"{Constants.NewLine}", code) :
              string.Empty;
 
     }
 
-    private string CreateMethodsCode()
+    private string CreateMappingMethodCode()
     {
-        var methods = _properties
-                .Select(x => x.MethodCode)
+        var code = _properties
+                .Select(x => x.MappingMethodCode)
                 .Where(x => !string.IsNullOrWhiteSpace(x))
                 .ToList();
 
-        return methods.Count > 0 ?
-            $"{Constants.NewLine}{string.Join($"{Constants.NewLine}{Constants.NewLine}", methods)}{Constants.NewLine}" :
+        return code.Count > 0 ?
+            $"{Constants.NewLine}{string.Join($"{Constants.NewLine}{Constants.NewLine}", code)}{Constants.NewLine}" :
             string.Empty;
     }
 }
