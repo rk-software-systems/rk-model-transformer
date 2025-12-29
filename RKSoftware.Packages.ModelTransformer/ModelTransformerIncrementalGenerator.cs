@@ -2,8 +2,9 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
-using RKSoftware.Packages.ModelTransformer.Generations;
+using RKSoftware.Packages.ModelTransformer.Builders;
 using RKSoftware.Packages.ModelTransformer.Extensions;
+using RKSoftware.Packages.ModelTransformer.Generations;
 using RKSoftware.Packages.ModelTransformer.Models;
 
 namespace RKSoftware.Packages.ModelTransformer;
@@ -95,7 +96,9 @@ public class ModelTransformerIncrementalGenerator : IIncrementalGenerator
 
             foreach (var group in groupedBySource)
             {
-                var exMethods = new List<string>();
+                var sourceName = group.Value.First().ClassName;
+                var extensionClassBuilder = new ExtensionClassCodeBuilder(tr.HostNamespace, sourceName, new List<ExtensionMethodCodeBuilder>(group.Value.Count));
+
                 foreach (var attr in group.Value)
                 {
                     var incorrectIgnoredProperties = attr.IncorrectIgnoredProperties;
@@ -116,17 +119,14 @@ public class ModelTransformerIncrementalGenerator : IIncrementalGenerator
                         context.CreateNotNullablePropertyCanNotBeIgnoredWarning(tr.Location, attr.Source, attr.Target, notNullableIgnoredProperties);
                     }
 
-                    var exMethod = ModelExtensionGeneration.GenerateExtensionMethod(attr, groupedBySource);
-                    exMethods.Add(exMethod);
+                    extensionClassBuilder.Methods.Add(new ExtensionMethodCodeBuilder(attr, groupedBySource));
                 }
 
-                var sourceName = group.Value.First().ClassName;
-
-                var exClass = ModelExtensionGeneration.GenerateExtensionClass(tr.HostNamespace, sourceName, exMethods);
+                var extensionClassCode = extensionClassBuilder.Generate();
 
                 var fileName = $"{tr.HostNamespace}.{sourceName}.g.cs";
 
-                context.AddSource(fileName, SourceText.From(exClass, Encoding.UTF8));
+                context.AddSource(fileName, SourceText.From(extensionClassCode, Encoding.UTF8));
             }
         }
     }

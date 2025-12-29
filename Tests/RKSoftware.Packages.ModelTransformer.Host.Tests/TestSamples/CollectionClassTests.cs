@@ -597,8 +597,6 @@ public class CollectionClassTests
         IEnumerable<ProjectDomain> domains,
         IEnumerable<ProjectViewModel> viewModels)
     {
-        domains = domains.OrderBy(x => x.Id);
-        viewModels = viewModels.OrderBy(x => x.Id);
         var count = domains.Count();
         Assert.Equal(count, viewModels.Count());
         for (int i = 0; i < count; i++)

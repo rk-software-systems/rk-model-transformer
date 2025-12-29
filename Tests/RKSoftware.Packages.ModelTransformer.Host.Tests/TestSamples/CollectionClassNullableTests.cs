@@ -599,8 +599,6 @@ public class CollectionClassNullableTests
         IEnumerable<ProjectDomain?> domains,
         IEnumerable<ProjectViewModel?> viewModels)
     {
-        domains = domains.OrderBy(d => d?.Id);
-        viewModels = viewModels.OrderBy(vm => vm?.Id);
         var count = domains.Count();
         Assert.Equal(count, viewModels.Count());
         for (int i = 0; i < count; i++)

@@ -19,16 +19,6 @@ internal sealed class PropertyMappingModel
 
     public string MethodName { get; }
 
-    public string VariableCreationCode { get; set; } = string.Empty;
-
-    public string ConstructorVariableMappingCode { get; set; } = string.Empty;
-
-    public string PostConstructorVariableMappingCode { get; set; } = string.Empty;
-
-    public string VariableMappingCode { get; set; } = string.Empty;
-
-    public string MethodCode { get; set; } = string.Empty;
-
     public bool IsReadonly { get; }
 
     public bool IsConstructorParam { get; }    
