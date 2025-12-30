@@ -23,7 +23,6 @@ internal sealed class ExtensionMethodCodeBuilder
             var propBuilder = new PropertyMappingCodeBuilder();
 
             IPropertySymbol? sourceProp = null;
-            string? mappingCode = null;
 
             var isIgnored = attr.IgnoredProperties.TryGetValue(targetProp.Key, out _);
 
@@ -33,15 +32,19 @@ internal sealed class ExtensionMethodCodeBuilder
             {
                 if (attr.SourceProperties.TryGetValue(targetProp.Key, out sourceProp))
                 {
+                    // Type Mapping
                     if (sourceProp.CanNotConvertType(targetProp.Value))
                     {
+                        // Complex Type Mapping
                         if (_typeRegistrations.TryGetValue(sourceProp.Type.OriginalDefinition.ToDisplayString(), out var complexTargets) &&
                             complexTargets.Any(x => SymbolEqualityComparer.Default.Equals(x.Target, targetProp.Value.Type)))
                         {
-                            mappingCode = $"source.{sourceProp.Name}{(sourceProp.IsNullable() ? "?" : "")}.Transform(({mapping.PropertyType.OriginalDefinition.ToDisplayString()}?)null)";
+                           
+                            propBuilder.SetComplexTypeMappingCode(mapping, sourceProp);                            
                         }
+                        // Collection Type Mapping
                         else
-                        {
+                        {                            
                             var sourceArgumentType = sourceProp.GetGenericArgumentType();
                             var targetArgumentType = targetProp.Value.GetGenericArgumentType();
                             if (sourceArgumentType != null &&
@@ -50,78 +53,64 @@ internal sealed class ExtensionMethodCodeBuilder
                             {
                                 string? str = null;
 
+                                // Check if the collection element types have a registered mapping
                                 if (_typeRegistrations.TryGetValue(sourceArgumentType.OriginalDefinition.ToDisplayString(), out var complexArgumentTargets) &&
                                     complexArgumentTargets.Any(x => SymbolEqualityComparer.Default.Equals(x.Target, targetArgumentType)))
                                 {
                                     if (mapping.PropertyType.IsGenericInterfaceConstructable() || mapping.PropertyType.IsArrayType())
                                     {
-                                        str = $"[.. source.{sourceProp.Name}.Select(x => x{(sourceArgumentType.IsNullable() ? "?" : "")}.Transform(({targetArgumentType.OriginalDefinition.ToDisplayString()}?)null))]";
+                                        str = propBuilder.GetEnumerableTypeCode(sourceProp, sourceArgumentType, targetArgumentType);
+                                        str = propBuilder.ApplyCloneCollectionTypeCode(str);
                                     }
                                     else if (mapping.PropertyType.GetEnumerableParameterInConstructor() is INamedTypeSymbol nt)
                                     {
-                                        str = $"source.{sourceProp.Name}.Select(x => x{(sourceArgumentType.IsNullable() ? "?" : "")}.Transform(({targetArgumentType.OriginalDefinition.ToDisplayString()}?)null))";
+                                        str = propBuilder.GetEnumerableTypeCode(sourceProp, sourceArgumentType, targetArgumentType);
                                         if (nt.IsEnumerableInterfaceSpecial() && !nt.IsListInterfaceSpecial() && !nt.IsCollectionInterfaceSpecial())
                                         {
 
                                         }
                                         else if (nt.IsCollectionInterfaceSpecial() || nt.IsArrayType())
                                         {
-                                            str = $"{str}.ToArray()";
+                                            str = propBuilder.ApplyCloneCollectionTypeCode(str);
                                         }
                                         else
                                         {
-                                            str = $"{str}.ToList()";
+                                            str = propBuilder.ApplyCloneListTypeCode(str);
                                         }
-                                        str = $"new ({str})";
-                                    }
-                                    else if (mapping.PropertyType.IsDictionaryType())
-                                    {
-                                        str = $"source.{sourceProp.Name}.ToDictionary(x => x.Key, y => y.Value{(sourceArgumentType.IsNullable() ? "?" : "")}.Transform(({targetArgumentType.OriginalDefinition.ToDisplayString()}?)null))";
+                                        str = propBuilder.ApplyCreateNewTypeCode(str);
                                     }
                                 }
+                                // Primitive type collection mapping
                                 else if (sourceArgumentType.IsPrimitiveOrString() &&
                                         targetArgumentType.IsPrimitiveOrString() &&
                                         SymbolEqualityComparer.Default.Equals(sourceArgumentType, targetArgumentType))
                                 {
-                                    if (mapping.PropertyType is INamedTypeSymbol nt && nt.Constructors.Any(c => c.Parameters.Length > 0))
+                                    if (mapping.PropertyType.IsGenericInterfaceConstructable() || 
+                                        mapping.PropertyType.IsArrayType() ||
+                                        mapping.PropertyType.GetEnumerableParameterInConstructor() is INamedTypeSymbol nt)
                                     {
-                                        str = $"source.{sourceProp.Name}[..]";
-                                    }
-                                    else if (mapping.PropertyType.IsGenericInterfaceConstructable())
-                                    {
-                                        if (mapping.PropertyType is INamedTypeSymbol nts &&
-                                            nts.IsListInterfaceSpecial())
-                                        {
-                                            str = $"source.{sourceProp.Name}.ToList()";
-                                        }
-                                        else
-                                        {
-                                            str = $"source.{sourceProp.Name}.ToArray()";
-                                        }
-                                    }
-                                    else if (mapping.PropertyType.IsArrayType())
-                                    {
-                                        str = $"source.{sourceProp.Name}[..]";
+                                        str = propBuilder.GetClonePrimitiveCollectionTypeCode(sourceProp);
                                     }
                                 }
 
                                 if (str != null)
                                 {
-                                    mappingCode = sourceProp.IsNullable() ? $"source.{sourceProp.Name} != null ? {str} : default" : str;
+                                    propBuilder.SetCollectionTypeMappingCode(sourceProp, str);
                                 }
                             }
                         }
                     }
+                    // Primitive Type Mapping
                     else
                     {
-                        mappingCode = $"source.{sourceProp.Name}";
+                        propBuilder.SetPrimitiveTypeMappingCode(sourceProp);
                     }
                 }
             }
 
             if (!isIgnored)
             {
-                if (mappingCode != null)
+                if (propBuilder.HasMappingCode)
                 {
                     propBuilder.SetVariableDefaultMappingMethodCode(mapping);
                 }
@@ -147,9 +136,9 @@ internal sealed class ExtensionMethodCodeBuilder
 
             if (!isIgnored)
             {
-                if (mappingCode != null)
+                if (propBuilder.HasMappingCode)
                 {
-                    propBuilder.SetDefaultMappingMethodCode(mapping, attr, mappingCode);
+                    propBuilder.SetDefaultMappingMethodCode(mapping, attr);
                     propBuilder.AddOptionalMappingMethodCode(mapping, attr);
                 }
                 else

@@ -1,4 +1,6 @@
-﻿namespace RKSoftware.Packages.ModelTransformer.Host.Concept;
+﻿using Microsoft.VisualBasic;
+
+namespace RKSoftware.Packages.ModelTransformer.Host.Concept;
 
 public static partial class MemberDomainExtensions
 {
@@ -29,6 +31,9 @@ public static partial class MemberDomainExtensions
         var scores = ToViewModelScoresDefault(source);
         ToViewModelScores(source, ref scores);
 
+        var updatedDates = ToViewModelUpdatedDatesDefault(source);
+        ToViewModelUpdatedDates(source, ref updatedDates);
+
         if (target == null)
         {
             target = new MemberViewModel
@@ -39,7 +44,8 @@ public static partial class MemberDomainExtensions
                 Addresses = addresses,
                 FirstName = firstName,
                 Departments = departments,
-                Scores = scores
+                Scores = scores,
+                UpdatedDates = updatedDates
             };
         } 
         else
@@ -50,6 +56,7 @@ public static partial class MemberDomainExtensions
             target.Addresses = addresses;
             target.Departments = departments;
             target.Scores = scores;
+            target.UpdatedDates = updatedDates;
         }
 
         return target;
@@ -102,6 +109,12 @@ public static partial class MemberDomainExtensions
         return source.Scores != null ? source.Scores[..] : default;
     }
     static partial void ToViewModelScores(MemberDomain source, ref int[]? target);
+
+    private static IList<DateTime>? ToViewModelUpdatedDatesDefault(MemberDomain source)
+    {
+        return source.UpdatedDates != null ? [.. source.UpdatedDates] : default;
+    }
+    static partial void ToViewModelUpdatedDates(MemberDomain source, ref IList<DateTime>? target);
     #endregion
 
     #region to Dto

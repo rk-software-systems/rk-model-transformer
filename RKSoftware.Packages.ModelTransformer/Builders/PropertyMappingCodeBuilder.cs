@@ -1,4 +1,6 @@
-﻿using RKSoftware.Packages.ModelTransformer.Models;
+﻿using Microsoft.CodeAnalysis;
+using RKSoftware.Packages.ModelTransformer.Extensions;
+using RKSoftware.Packages.ModelTransformer.Models;
 
 namespace RKSoftware.Packages.ModelTransformer.Builders;
 
@@ -21,6 +23,8 @@ internal sealed class PropertyMappingCodeBuilder
     public string VariableMappingCode => _variableMappingCode;
 
     public string MappingMethodCode => _mappingMethodCode;
+
+    public bool HasMappingCode => !string.IsNullOrEmpty(_mappingCode);
 
 
     public void SetVariableDefaultMappingMethodCode(PropertyMappingModel mapping)
@@ -54,25 +58,68 @@ $@"{Constants.Indent____5}{mapping.PropertyName} = {mapping.VariableName}";
 $@"{Constants.Indent___4}target.{mapping.PropertyName} = {mapping.VariableName};";
     }
 
-    public void SetDefaultMappingMethodCode(PropertyMappingModel mapping, AttributeDataModel attr, string code)
+    public void SetDefaultMappingMethodCode(PropertyMappingModel mapping, AttributeDataModel attr)
     {
-        _mappingMethodCode = 
+        _mappingMethodCode =
 $@"{Constants.Indent_2}private static {mapping.PropertyType.ToDisplayString()} {mapping.DefaultMethodName}({attr.Source.ToDisplayString()} source)
 {Constants.Indent_2}{{
-{Constants.Indent__3}return {code};
+{Constants.Indent__3}return {_mappingCode};
 {Constants.Indent_2}}}";
     }
 
     public void AddOptionalMappingMethodCode(PropertyMappingModel mapping, AttributeDataModel attr)
     {
-       var code =
-$@"{Constants.Indent_2}static partial void {mapping.MethodName}({attr.Source.ToDisplayString()} source, ref {mapping.PropertyType.ToDisplayString()} target);";
+        var code =
+ $@"{Constants.Indent_2}static partial void {mapping.MethodName}({attr.Source.ToDisplayString()} source, ref {mapping.PropertyType.ToDisplayString()} target);";
         _mappingMethodCode = $"{_mappingMethodCode}{Constants.NewLine}{code}";
     }
 
     public void SetRequiredMappingMethodCode(PropertyMappingModel mapping, AttributeDataModel attr)
     {
-        _mappingMethodCode = 
+        _mappingMethodCode =
 $@"{Constants.Indent_2}private static partial {mapping.PropertyType.ToDisplayString()} {mapping.MethodName}({attr.Source.ToDisplayString()} source);";
+    }
+
+    public void SetComplexTypeMappingCode(PropertyMappingModel mapping, IPropertySymbol sourceProp)
+    {
+        _mappingCode =
+$"source.{sourceProp.Name}{(sourceProp.IsNullable() ? "?" : "")}.Transform(({mapping.PropertyType.OriginalDefinition.ToDisplayString()}?)null)";
+    }
+
+    public void SetCollectionTypeMappingCode(IPropertySymbol sourceProp, string code)
+    {
+        _mappingCode =
+sourceProp.IsNullable() ? $"source.{sourceProp.Name} != null ? {code} : {Constants.Default}" : code;
+    }
+
+    public void SetPrimitiveTypeMappingCode(IPropertySymbol sourceProp)
+    {
+        _mappingCode = $"source.{sourceProp.Name}";
+    }
+
+    public string GetEnumerableTypeCode(IPropertySymbol sourceProp, ITypeSymbol sourceArgumentType, ITypeSymbol targetArgumentType)
+    {
+        return
+$"source.{sourceProp.Name}.Select(x => x{(sourceArgumentType.IsNullable() ? "?" : "")}.Transform(({targetArgumentType.OriginalDefinition.ToDisplayString()}?)null))";
+    }
+
+    public string ApplyCloneCollectionTypeCode(string code)
+    {
+        return $"[.. {code}]";
+    }
+
+    public string ApplyCloneListTypeCode(string code)
+    {
+        return $"{code}.ToList()";
+    }
+
+    public string ApplyCreateNewTypeCode(string code)
+    {
+        return $"new ({code})";
+    }
+
+    public string GetClonePrimitiveCollectionTypeCode(IPropertySymbol sourceProp)
+    {
+        return $"[.. source.{sourceProp.Name}]";
     }
 }
