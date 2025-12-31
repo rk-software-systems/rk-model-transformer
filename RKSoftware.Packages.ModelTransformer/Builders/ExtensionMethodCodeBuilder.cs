@@ -83,7 +83,7 @@ internal sealed class ExtensionMethodCodeBuilder
                                 // Primitive type collection mapping
                                 else if (sourceArgumentType.IsPrimitiveOrString() &&
                                         targetArgumentType.IsPrimitiveOrString() &&
-                                        SymbolEqualityComparer.Default.Equals(sourceArgumentType, targetArgumentType))
+                                        SymbolEqualityComparer.Default.Equals(sourceArgumentType.GetNonNullable(), targetArgumentType.GetNonNullable()))
                                 {
                                     if (mapping.PropertyType.IsGenericInterfaceConstructable() || 
                                         mapping.PropertyType.IsArrayType() ||
