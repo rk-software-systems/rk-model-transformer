@@ -92,8 +92,28 @@ internal sealed class ExtensionMethodCodeBuilder
                                         str = propBuilder.GetCloneCollectionTypeCode(sourceProp);
                                     }
                                     else if (mapping.PropertyType.GetEnumerableParameterInConstructor() is INamedTypeSymbol nt)
-                                    {                                        
-                                       str = propBuilder.GetCreateNewTypeCode(sourceProp);                                        
+                                    {      
+                                        if (!sourceArgumentType.IsNullable() && targetArgumentType.IsNullable())
+                                        {
+                                            str = propBuilder.GetCastCollectionTypeCode(sourceProp, targetArgumentType);
+                                            if (nt.IsEnumerableInterface())
+                                            {
+                                            }
+                                            else if (nt.IsCollectionInterface() || nt.IsArrayType())
+                                            {
+                                                str = propBuilder.ApplyCloneCollectionTypeCode(str);
+                                            }
+                                            else
+                                            {
+                                                str = propBuilder.ApplyCloneListTypeCode(str);
+                                            }
+                                        }
+                                        else
+                                        {
+                                            str = propBuilder.GetSourceCode(sourceProp);
+                                        }
+
+                                        str = propBuilder.ApplyCreateNewTypeCode(str);                                        
                                     }
                                 }
 

@@ -124,8 +124,19 @@ $"source.{sourceProp.Name}.Select(x => x{(showsNullCheck ? "?" : "")}.Transform(
         return $"[.. source.{sourceProp.Name}]";
     }
 
-    public string GetCreateNewTypeCode(IPropertySymbol sourceProp)
+    public string GetSourceCode(IPropertySymbol sourceProp)
     {
-        return $"new (source.{sourceProp.Name})";
+        return $"source.{sourceProp.Name}";
+    }
+
+    public string GetCastCollectionTypeCode(IPropertySymbol sourceProp, ITypeSymbol targetArgumentType)
+    {
+        return $"source.{sourceProp.Name}.Cast<{targetArgumentType.ToDisplayString()}>()";
+    }
+
+    public string GetCreateNewCollectionTypeCode(IPropertySymbol sourceProp, ITypeSymbol sourceArgumentType, ITypeSymbol targetArgumentType)
+    {
+        var isCasted = !sourceArgumentType.IsNullable() && targetArgumentType.IsNullable();
+        return $"new (source.{sourceProp.Name}{(isCasted ? $".Cast<{targetArgumentType.ToDisplayString()}>()" : "")})";
     }
 }
