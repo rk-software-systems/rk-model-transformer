@@ -414,7 +414,7 @@ public class CollectionClassNullableTests
         Assert.NotNull(viewModel);
         Assert.NotNull(viewModel.ProjectStack);
 
-        AssertEqualDomainsAndViewModels(domain.ProjectStack, viewModel.ProjectStack);
+        AssertEqualDomainsAndViewModels(domain.ProjectStack, viewModel.ProjectStack.Reverse());
     }
 
     [Fact]
@@ -453,7 +453,7 @@ public class CollectionClassNullableTests
         Assert.NotNull(updatedViewModel.ProjectStack);
         Assert.Equal(viewModel, updatedViewModel);
 
-        AssertEqualDomainsAndViewModels(domain.ProjectStack, viewModel.ProjectStack);
+        AssertEqualDomainsAndViewModels(domain.ProjectStack, viewModel.ProjectStack.Reverse());
     }
 
     [Fact]

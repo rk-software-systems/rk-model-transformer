@@ -14,7 +14,7 @@ internal sealed class RegistrationAttributeCodeBuilder
 namespace {Namespace}
 {{
     [System.AttributeUsage(System.AttributeTargets.Class, AllowMultiple=true)]
-    public sealed class {GenericName} () : System.Attribute
+    public sealed class {GenericName} () : System.Attribute where T1 : class where T2 : class
     {{
         public string[]? {Constants.IgnoredProperties} {{ get; set; }}
     }}

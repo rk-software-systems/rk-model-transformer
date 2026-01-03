@@ -28,29 +28,10 @@ internal static class TypeExtensions
         return type;
     }
 
-    /// <summary>
-    /// Determines whether the specified type symbol represents a special generic collection interface, such as
-    /// IEnumerable{T}, ICollection{T}, IList{T}, IReadOnlyCollection{T}, or IReadOnlyList{T}.
-    /// </summary>
-    /// <remarks>
-    /// This method checks only for the generic collection interfaces defined in the
-    /// System.Collections.Generic namespace. It does not consider non-generic or custom collection
-    /// interfaces.
-    /// </remarks>
-    /// <param name="type">
-    /// The type symbol to evaluate. This must be a named type symbol representing a type definition or constructed type.
-    /// </param>
-    /// <returns>
-    /// true if the type symbol is one of the recognized generic collection interfaces; otherwise, false.
-    /// </returns>
-    public static bool IsEnumerableInterfaceSpecial(this INamedTypeSymbol type)
+    public static bool IsEnumerableInterface(this INamedTypeSymbol type)
     {
         var specialType = type.OriginalDefinition.SpecialType;
-        return specialType == SpecialType.System_Collections_Generic_IEnumerable_T ||
-               specialType == SpecialType.System_Collections_Generic_ICollection_T ||
-               specialType == SpecialType.System_Collections_Generic_IList_T ||
-               specialType == SpecialType.System_Collections_Generic_IReadOnlyCollection_T ||
-               specialType == SpecialType.System_Collections_Generic_IReadOnlyList_T;
+        return specialType == SpecialType.System_Collections_Generic_IEnumerable_T;
     }
 
     /// <summary>
@@ -61,7 +42,7 @@ internal static class TypeExtensions
     /// <returns>
     /// true if the type is the generic IList{T} or IReadOnlyList{T} interface; otherwise, false.
     /// </returns>
-    public static bool IsListInterfaceSpecial(this INamedTypeSymbol type)
+    public static bool IsListInterface(this INamedTypeSymbol type)
     {
         var specialType = type.OriginalDefinition.SpecialType;
         return specialType == SpecialType.System_Collections_Generic_IList_T ||
@@ -78,7 +59,7 @@ internal static class TypeExtensions
     /// <returns>
     /// true if the type is ICollection{T} or IReadOnlyCollection{T}; otherwise, false.
     /// </returns>
-    public static bool IsCollectionInterfaceSpecial(this INamedTypeSymbol type)
+    public static bool IsCollectionInterface(this INamedTypeSymbol type)
     {
         var specialType = type.OriginalDefinition.SpecialType;
         return specialType == SpecialType.System_Collections_Generic_ICollection_T ||
@@ -110,7 +91,10 @@ internal static class TypeExtensions
                 return false;
             }
 
-            if (namedType.OriginalDefinition.IsEnumerableInterfaceSpecial())
+            var originalType = namedType.OriginalDefinition;
+            if (originalType.IsEnumerableInterface() ||
+                originalType.IsCollectionInterface() ||
+                originalType.IsListInterface())
             {
                 return true;
             }
@@ -189,6 +173,11 @@ internal static class TypeExtensions
         return false;
     }
 
+    public static bool IsStructure(this ITypeSymbol type)
+    {
+        return type.TypeKind == TypeKind.Struct;
+    }
+
     public static ITypeSymbol? GetEnumerableParameterInConstructor(this ITypeSymbol type)
     {
         if (type is INamedTypeSymbol namedType && namedType.IsGenericType)
@@ -200,9 +189,11 @@ internal static class TypeExtensions
                                          m.Parameters.Length == 1 &&
                                          m.Parameters[0].Type is INamedTypeSymbol paramType &&
                                          paramType.IsGenericType &&
-                                         (paramType.OriginalDefinition.IsEnumerableInterfaceSpecial() || 
-                                            paramType.IsArrayType() || 
-                                            namedType.AllInterfaces.Any(i => i.OriginalDefinition.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T)));
+                                         (paramType.OriginalDefinition.IsEnumerableInterface() || 
+                                          paramType.OriginalDefinition.IsCollectionInterface() ||
+                                          paramType.OriginalDefinition.IsListInterface() ||
+                                          paramType.IsArrayType() || 
+                                          namedType.AllInterfaces.Any(i => i.OriginalDefinition.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T)));
                 return constructor?.Parameters[0].Type;
             }
         }

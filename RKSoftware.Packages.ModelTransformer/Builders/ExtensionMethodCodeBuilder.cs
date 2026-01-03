@@ -65,11 +65,11 @@ internal sealed class ExtensionMethodCodeBuilder
                                     else if (mapping.PropertyType.GetEnumerableParameterInConstructor() is INamedTypeSymbol nt)
                                     {
                                         str = propBuilder.GetEnumerableTypeCode(sourceProp, sourceArgumentType, targetArgumentType);
-                                        if (nt.IsEnumerableInterfaceSpecial() && !nt.IsListInterfaceSpecial() && !nt.IsCollectionInterfaceSpecial())
+                                        if (nt.IsEnumerableInterface())
                                         {
 
                                         }
-                                        else if (nt.IsCollectionInterfaceSpecial() || nt.IsArrayType())
+                                        else if (nt.IsCollectionInterface() || nt.IsArrayType())
                                         {
                                             str = propBuilder.ApplyCloneCollectionTypeCode(str);
                                         }
@@ -81,8 +81,8 @@ internal sealed class ExtensionMethodCodeBuilder
                                     }
                                 }
                                 // Primitive type collection mapping
-                                else if (sourceArgumentType.IsPrimitiveOrString() &&
-                                        targetArgumentType.IsPrimitiveOrString() &&
+                                else if ((sourceArgumentType.IsPrimitiveOrString() || sourceArgumentType.IsStructure()) &&
+                                         (targetArgumentType.IsPrimitiveOrString() || targetArgumentType.IsStructure()) &&
                                         SymbolEqualityComparer.Default.Equals(sourceArgumentType.GetNonNullable(), targetArgumentType.GetNonNullable()))
                                 {
                                     if (mapping.PropertyType.IsGenericInterfaceConstructable() || 
