@@ -1,8 +1,8 @@
-﻿using RKSoftware.Packages.ModelTransformer.Host.TestSuite;
+﻿using RKSoftware.Packages.ModelTransformer.Host.RandomSample;
 
 namespace RKSoftware.Packages.ModelTransformer.Host.Tests;
 
-public class TransformerTests
+public class RandomSampleTests
 {
     [Fact]
     public void DomainToViewModelTransformerTest()

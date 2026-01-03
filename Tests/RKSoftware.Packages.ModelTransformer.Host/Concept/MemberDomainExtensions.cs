@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualBasic;
+﻿using System.Collections.ObjectModel;
+using Microsoft.VisualBasic;
 
 namespace RKSoftware.Packages.ModelTransformer.Host.Concept;
 
@@ -83,12 +84,12 @@ public static partial class MemberDomainExtensions
     }
     static partial void ToViewModelAddress(MemberDomain source, ref AddressViewModel? address);
 
-    private static List<AddressViewModel>? ToViewModelAddressesDefault(MemberDomain source)
+    private static Collection<AddressViewModel?>? ToViewModelAddressesDefault(MemberDomain source)
     {
         ArgumentNullException.ThrowIfNull(source, nameof(source));
-        return source.Addresses != null ? [.. source.Addresses.Select(x => x.Transform())] : default;
+        return source.Addresses != null ? new(source.Addresses.Select(x => x?.Transform()).ToList()) : default;
     }
-    static partial void ToViewModelAddresses(MemberDomain source, ref List<AddressViewModel>? address);
+    static partial void ToViewModelAddresses(MemberDomain source, ref Collection<AddressViewModel?>? address);
 
     private static string ToViewModelFirstNameDefault(MemberDomain source)
     {

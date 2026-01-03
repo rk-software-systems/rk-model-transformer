@@ -1,6 +1,6 @@
 ﻿using RKSoftware.Packages.ModelTransformer.Attributes;
 
-namespace RKSoftware.Packages.ModelTransformer.Host.TestSuite;
+namespace RKSoftware.Packages.ModelTransformer.Host.RandomSample;
 
 [ModelTransformerRegistration<DomainChild, ViewModelChild>]
 [ModelTransformerRegistration<Domain, RecordModel>(

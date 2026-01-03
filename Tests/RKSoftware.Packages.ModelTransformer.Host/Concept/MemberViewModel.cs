@@ -1,4 +1,6 @@
-﻿namespace RKSoftware.Packages.ModelTransformer.Host.Concept;
+﻿using System.Collections.ObjectModel;
+
+namespace RKSoftware.Packages.ModelTransformer.Host.Concept;
 
 public class MemberViewModel
 {
@@ -8,7 +10,7 @@ public class MemberViewModel
 
     public AddressViewModel? Address { get; set; }
 
-    public List<AddressViewModel>? Addresses { get; set; }
+    public Collection<AddressViewModel?>? Addresses { get; set; }
 
     public required string FirstName { get; set; }
 

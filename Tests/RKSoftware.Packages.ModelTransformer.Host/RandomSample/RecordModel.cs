@@ -1,4 +1,4 @@
-﻿namespace RKSoftware.Packages.ModelTransformer.Host.TestSuite;
+﻿namespace RKSoftware.Packages.ModelTransformer.Host.RandomSample;
 
 public record class RecordModel(string StringRequired, int IntRequired, string NullableStringToString)
 {

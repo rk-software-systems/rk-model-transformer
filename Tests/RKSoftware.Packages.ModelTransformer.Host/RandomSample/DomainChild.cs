@@ -1,4 +1,4 @@
-﻿namespace RKSoftware.Packages.ModelTransformer.Host.TestSuite;
+﻿namespace RKSoftware.Packages.ModelTransformer.Host.RandomSample;
 
 public class DomainChild
 {

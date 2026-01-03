@@ -49,7 +49,7 @@ internal sealed class ExtensionMethodCodeBuilder
                             var targetArgumentType = targetProp.Value.GetGenericArgumentType();
                             if (sourceArgumentType != null &&
                                 targetArgumentType != null &&
-                                (targetArgumentType.IsNullable() || !sourceArgumentType.IsNullable()))
+                               (targetArgumentType.IsNullable() || !sourceArgumentType.IsNullable()))
                             {
                                 string? str = null;
 
@@ -57,7 +57,8 @@ internal sealed class ExtensionMethodCodeBuilder
                                 if (_typeRegistrations.TryGetValue(sourceArgumentType.OriginalDefinition.ToDisplayString(), out var complexArgumentTargets) &&
                                     complexArgumentTargets.Any(x => SymbolEqualityComparer.Default.Equals(x.Target, targetArgumentType)))
                                 {
-                                    if (mapping.PropertyType.IsGenericInterfaceConstructable() || mapping.PropertyType.IsArrayType())
+                                    if (mapping.PropertyType.IsGenericInterfaceConstructable() ||
+                                        mapping.PropertyType.IsArrayType())
                                     {
                                         str = propBuilder.GetEnumerableTypeCode(sourceProp, sourceArgumentType, targetArgumentType);
                                         str = propBuilder.ApplyCloneCollectionTypeCode(str);
@@ -85,11 +86,14 @@ internal sealed class ExtensionMethodCodeBuilder
                                          (targetArgumentType.IsPrimitiveOrString() || targetArgumentType.IsStructure()) &&
                                         SymbolEqualityComparer.Default.Equals(sourceArgumentType.GetNonNullable(), targetArgumentType.GetNonNullable()))
                                 {
-                                    if (mapping.PropertyType.IsGenericInterfaceConstructable() || 
-                                        mapping.PropertyType.IsArrayType() ||
-                                        mapping.PropertyType.GetEnumerableParameterInConstructor() is INamedTypeSymbol nt)
+                                    if (mapping.PropertyType.IsGenericInterfaceConstructable() ||
+                                        mapping.PropertyType.IsArrayType())
                                     {
-                                        str = propBuilder.GetClonePrimitiveCollectionTypeCode(sourceProp);
+                                        str = propBuilder.GetCloneCollectionTypeCode(sourceProp);
+                                    }
+                                    else if (mapping.PropertyType.GetEnumerableParameterInConstructor() is INamedTypeSymbol nt)
+                                    {                                        
+                                       str = propBuilder.GetCreateNewTypeCode(sourceProp);                                        
                                     }
                                 }
 

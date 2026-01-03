@@ -1,5 +1,4 @@
 ﻿using RKSoftware.Packages.ModelTransformer.Host.Concept;
-using RKSoftware.Packages.ModelTransformer.Host.TestSuite;
 
 namespace RKSoftware.Packages.ModelTransformer.Host.Tests;
 
@@ -8,7 +7,7 @@ public class ConceptTests
     [Fact]
     public void DomainToViewModelTransformerTest()
     {
-        var domain = new Concept.MemberDomain
+        var domain = new MemberDomain
         {
             MemberId = 1,
             UserName = "johndoe"

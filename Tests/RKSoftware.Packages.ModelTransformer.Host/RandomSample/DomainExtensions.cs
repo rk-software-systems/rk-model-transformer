@@ -1,6 +1,6 @@
 ﻿using System.Globalization;
 
-namespace RKSoftware.Packages.ModelTransformer.Host.TestSuite;
+namespace RKSoftware.Packages.ModelTransformer.Host.RandomSample;
 
 public static partial class DomainExtensions
 {

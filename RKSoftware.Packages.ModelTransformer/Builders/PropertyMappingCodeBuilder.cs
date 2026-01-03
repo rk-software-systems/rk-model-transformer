@@ -99,8 +99,9 @@ sourceProp.IsNullable() ? $"source.{sourceProp.Name} != null ? {code} : {Constan
 
     public string GetEnumerableTypeCode(IPropertySymbol sourceProp, ITypeSymbol sourceArgumentType, ITypeSymbol targetArgumentType)
     {
+        var showsNullCheck = sourceArgumentType.IsNullable() || targetArgumentType.IsNullable();
         return
-$"source.{sourceProp.Name}.Select(x => x{(sourceArgumentType.IsNullable() ? "?" : "")}.Transform(({targetArgumentType.OriginalDefinition.ToDisplayString()}?)null))";
+$"source.{sourceProp.Name}.Select(x => x{(showsNullCheck ? "?" : "")}.Transform(({targetArgumentType.OriginalDefinition.ToDisplayString()}?)null))";
     }
 
     public string ApplyCloneCollectionTypeCode(string code)
@@ -118,8 +119,13 @@ $"source.{sourceProp.Name}.Select(x => x{(sourceArgumentType.IsNullable() ? "?" 
         return $"new ({code})";
     }
 
-    public string GetClonePrimitiveCollectionTypeCode(IPropertySymbol sourceProp)
+    public string GetCloneCollectionTypeCode(IPropertySymbol sourceProp)
     {
         return $"[.. source.{sourceProp.Name}]";
+    }
+
+    public string GetCreateNewTypeCode(IPropertySymbol sourceProp)
+    {
+        return $"new (source.{sourceProp.Name})";
     }
 }

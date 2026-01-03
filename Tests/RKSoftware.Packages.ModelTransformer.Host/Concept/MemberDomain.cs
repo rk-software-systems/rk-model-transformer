@@ -1,4 +1,6 @@
-﻿namespace RKSoftware.Packages.ModelTransformer.Host.Concept;
+﻿using System.Collections.ObjectModel;
+
+namespace RKSoftware.Packages.ModelTransformer.Host.Concept;
 
 public class MemberDomain
 {
@@ -8,7 +10,7 @@ public class MemberDomain
 
     public AddressDomain? Address { get; set; }
 
-    public List<AddressDomain>? Addresses { get; set; }
+    public Collection<AddressDomain>? Addresses { get; set; }
 
     public string? FirstName { get; set; }
 
