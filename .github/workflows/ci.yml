@@ -28,11 +28,10 @@ jobs:
 
       - name: Convert TRX → JUnit
         run: |
-          ls
-          ls ./test-results
+          ls -la ./test-results
           dotnet tool install --global trx2junit || true
           export PATH="$PATH:$HOME/.dotnet/tools"
-          trx2junit ./test-results/test-results.trx -o test-results.junit.xml
+          trx2junit ./test-results/test-results.trx --output test-results.junit.xml
 
       - name: Publish test results to GitHub (Checks / Test Reporting)
         uses: dorny/test-reporter@v1
