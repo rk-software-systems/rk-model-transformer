@@ -124,26 +124,31 @@ namespace YourNamespace
 ```
 2) Create the static partial class `YourDomainExtensions` under the same namespace `YourNamespace` in another file to implement:
 - custom mapping logic for properties listed in `WithoutDefaultMapping`.
-  Required. If not implemented, a compilation error will occur.
-  `CS8795. Partial method 'MyDomainExtensions.ToYourViewModelYourPropertyWithoutDefaultMapping(YourDomain)' must have an implementation part because it has accessibility modifiers.`
+  Required. If not implemented, a compilation error will occur:
+  ```
+  CS8795. Partial method 'MyDomainExtensions.ToYourViewModelYourPropertyWithoutDefaultMapping(YourDomain)' must have an implementation part because it has accessibility modifiers.
+  ```
 - custom mapping logic for properties with type mismatch.
-  Required. If not implemented, a compilation error will occur.
-  `CS8795. Partial method 'MyDomainExtensions.ToYourViewModelYourPropertyWithTypeMismatch(YourDomain)' must have an implementation part because it has accessibility modifiers.`  
+  Required. If not implemented, a compilation error will occur:
+  ```
+  CS8795. Partial method 'MyDomainExtensions.ToYourViewModelYourPropertyWithTypeMismatch(YourDomain)' must have an implementation part because it has accessibility modifiers.
+  ```  
 - custom mapping logic after default mapping logic for other properties.
   Optional. If not implemented, no compilation error will occur.
+
 ```csharp
 namespace YourNamespace; 
 
 
 public static partial class YourDomainExtensions
 {
-    // custom mapping logic for properties listed in `WithoutDefaultMapping`
+    // custom mapping logic for properties listed in `WithoutDefaultMapping` (required)
     private static partial string? ToYourViewModelYourPropertyWithoutDefaultMapping(YourDomain source)
     {
         return source.YourPropertyWithoutDefaultMapping;
     }
 
-    // custom mapping logic for properties with type mismatch
+    // custom mapping logic for properties with type mismatch (required)
     private static partial string? ToYourViewModelYourPropertyWithTypeMismatch(YourDomain source)
     {
         return source.YourPropertyWithTypeMismatch?.ToString(CultureInfo.InvariantCulture);
