@@ -82,8 +82,9 @@ $@"{Constants.Indent_2}private static partial {mapping.PropertyType.ToDisplayStr
 
     public void SetComplexTypeMappingCode(PropertyMappingModel mapping, IPropertySymbol sourceProp)
     {
+        var showsNullCheck = sourceProp.IsNullable() || mapping.PropertyType.IsNullable();
         _mappingCode =
-$"source.{sourceProp.Name}{(sourceProp.IsNullable() ? "?" : "")}.Transform(({mapping.PropertyType.OriginalDefinition.ToDisplayString()}?)null)";
+$"source.{sourceProp.Name}{(showsNullCheck ? "?" : "")}.Transform(({mapping.PropertyType.OriginalDefinition.ToDisplayString()}?)null)";
     }
 
     public void SetCollectionTypeMappingCode(IPropertySymbol sourceProp, string code)

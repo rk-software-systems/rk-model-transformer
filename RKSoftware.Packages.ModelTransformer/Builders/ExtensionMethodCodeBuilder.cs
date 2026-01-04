@@ -37,7 +37,8 @@ internal sealed class ExtensionMethodCodeBuilder
                     {
                         // Complex Type Mapping
                         if (_typeRegistrations.TryGetValue(sourceProp.Type.OriginalDefinition.ToDisplayString(), out var complexTargets) &&
-                            complexTargets.Any(x => SymbolEqualityComparer.Default.Equals(x.Target, targetProp.Value.Type)))
+                            complexTargets.Any(x => SymbolEqualityComparer.Default.Equals(x.Target, targetProp.Value.Type)) &&
+                            (targetProp.Value.IsNullable() || !sourceProp.IsNullable()))
                         {
                            
                             propBuilder.SetComplexTypeMappingCode(mapping, sourceProp);                            
