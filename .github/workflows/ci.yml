@@ -1,4 +1,4 @@
-name: NuGet Package Generation
+﻿name: NuGet Package Generation
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
-    name: Build and Test
+    name: Build, Test and Pack
     steps:
       - uses: actions/checkout@v2
 
@@ -26,11 +26,36 @@ jobs:
       - name: Run unit tests
         run: dotnet test ./Tests/RKSoftware.Packages.ModelTransformer.Host.Tests/RKSoftware.Packages.ModelTransformer.Host.Tests.csproj --configuration Release --no-build --logger "trx;LogFileName=test-results.trx"
 
-      - name: Upload test results
+      - name: Convert TRX → JUnit
+        run: |
+          dotnet tool install --global trx2junit || true
+          export PATH="$PATH:$HOME/.dotnet/tools"
+          trx2junit test-results.trx -o test-results.junit.xml
+
+      - name: Publish test results to GitHub (Checks / Test Reporting)
+        uses: dorny/test-reporter@v1
+        with:
+          name: Unit tests
+          path: test-results.junit.xml
+          reporter: junit
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload test artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: test-results
-          path: '**/test-results.trx'
+          name: test-artifacts
+          path: |
+            test-results.trx
+            test-results.junit.xml
+
+      - name: Pack NuGet package
+        run: dotnet pack ./RKSoftware.Packages.ModelTransformer/RKSoftware.Packages.ModelTransformer.csproj --configuration Release --no-build -o ./artifacts
+
+      - name: Upload packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: nupkgs
+          path: artifacts/*.nupkg
 
   publish:
     needs: build-and-test
@@ -44,5 +69,11 @@ jobs:
         with:
           dotnet-version: '10.x'
 
+      - name: Download packaged artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: nupkgs
+          path: ./artifacts
+
       - name: Push to NuGet repository
-        run: dotnet nuget push ./RKSoftware.Packages.ModelTransformer/bin/Release/*.nupkg --api-key ${{secrets.NUGET_API_KEY}} --source https://api.nuget.org/v3/index.json
+        run: dotnet nuget push ./artifacts/*.nupkg --api-key ${{secrets.NUGET_API_KEY}} --source https://api.nuget.org/v3/index.json
