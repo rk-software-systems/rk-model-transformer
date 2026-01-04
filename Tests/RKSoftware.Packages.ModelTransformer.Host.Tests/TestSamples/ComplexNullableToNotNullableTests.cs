@@ -38,6 +38,7 @@ public class ComplexNullableToNotNullableTests
         Assert.NotNull(viewModel);
 
         Assert.NotNull(viewModel.Industry);
+
         Assert.Equal(CompanyDomainExtensions.DefaultIndustry.Id, viewModel.Industry.Id);
         Assert.Equal(CompanyDomainExtensions.DefaultIndustry.Name, viewModel.Industry.Name);
     }
@@ -70,6 +71,7 @@ public class ComplexNullableToNotNullableTests
 
         Assert.NotNull(updatedViewModel);
         Assert.Equal(viewModel, updatedViewModel);
+
         Assert.Equal(domain.Industry.Id, viewModel.Industry.Id);
         Assert.Equal(domain.Industry.Name, viewModel.Industry.Name);
     }
@@ -98,6 +100,10 @@ public class ComplexNullableToNotNullableTests
 
         Assert.NotNull(updatedViewModel);
         Assert.Equal(viewModel, updatedViewModel);
-        Assert.Null(viewModel.Industry);
+
+        Assert.NotNull(viewModel.Industry);
+
+        Assert.Equal(CompanyDomainExtensions.DefaultIndustry.Id, viewModel.Industry.Id);
+        Assert.Equal(CompanyDomainExtensions.DefaultIndustry.Name, viewModel.Industry.Name);
     }
 }
