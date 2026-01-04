@@ -198,10 +198,5 @@ internal static class TypeExtensions
             }
         }
         return null;
-    }    
-
-    public static bool IsDictionaryType(this ITypeSymbol property)
-    {
-        return false;
     }
 }

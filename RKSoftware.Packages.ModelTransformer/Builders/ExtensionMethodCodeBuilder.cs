@@ -110,7 +110,7 @@ internal sealed class ExtensionMethodCodeBuilder
                                         }
                                         else
                                         {
-                                            str = propBuilder.GetSourceCode(sourceProp);
+                                            str = propBuilder.GetSourcePropertyCode(sourceProp);
                                         }
 
                                         str = propBuilder.ApplyCreateNewTypeCode(str);                                        

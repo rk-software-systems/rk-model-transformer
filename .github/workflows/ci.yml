@@ -6,22 +6,43 @@ on:
       - main
 
 jobs:
-
-  deploy:
+  build-and-test:
     runs-on: ubuntu-latest
-    name: Update or Create NuGet package
+    name: Build and Test
     steps:
       - uses: actions/checkout@v2
+
       - name: Setup .NET Core
         uses: actions/setup-dotnet@v1
         with:
           dotnet-version: '10.x'
 
-      - name: Install dependencies
-        run: dotnet restore RKSoftware.Packages.ModelTransformer
+      - name: Restore dependencies
+        run: dotnet restore
 
       - name: Build
-        run: dotnet build RKSoftware.Packages.ModelTransformer --configuration Release --no-restore -warnaserror
+        run: dotnet build --configuration Release --no-restore -warnaserror
+
+      - name: Run unit tests
+        run: dotnet test ./RKSoftware.Packages.ModelTransformer.Host.Tests/RKSoftware.Packages.ModelTransformer.Host.Tests.csproj --configuration Release --no-build --logger "trx;LogFileName=test-results.trx"
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-results
+          path: '**/test-results.trx'
+
+  publish:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    name: Publish NuGet package (runs only if tests passed)
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '10.x'
 
       - name: Push to NuGet repository
         run: dotnet nuget push ./RKSoftware.Packages.ModelTransformer/bin/Release/*.nupkg --api-key ${{secrets.NUGET_API_KEY}} --source https://api.nuget.org/v3/index.json
