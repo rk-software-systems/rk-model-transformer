@@ -105,29 +105,21 @@ internal sealed class AttributeDataModel
 
     private static bool ExistsInTarget(ITypeSymbol target, string prop)
     {
-        var targetProps = target.GetMembers().OfType<IPropertySymbol>();
+        var targetProps = target.GetAllProperties(true);
         return targetProps.Any(p => string.Equals(p.Name, prop, StringComparison.Ordinal));
     }
 
     private static FrozenSet<string> GetNotIgnoredReadonlyProperties(ITypeSymbol target, FrozenSet<string> ignoredProperties)
     {
-        return target.GetMembers()
-            .OfType<IPropertySymbol>()
-            .Where(p => !p.IsStatic && 
-                         p.DeclaredAccessibility == Accessibility.Public && 
-                         p.IsReadOnly && 
-                         !ignoredProperties.Contains(p.Name))
+        return target.GetAllProperties(true)
+            .Where(p => p.IsReadOnly &&  !ignoredProperties.Contains(p.Name))
             .Select(p => p.Name)
             .ToFrozenSet(StringComparer.Ordinal);
     }
 
     private static FrozenDictionary<string, IPropertySymbol> GetProperties(ITypeSymbol type, bool includeReadOnly)
     {
-        return type.GetMembers()
-            .OfType<IPropertySymbol>()
-            .Where(p => !p.IsStatic &&                         
-                        p.DeclaredAccessibility == Accessibility.Public &&
-                        (includeReadOnly || !p.IsReadOnly))
+        return type.GetAllProperties(includeReadOnly)
             .ToFrozenDictionary(x => x.Name, y => y, StringComparer.Ordinal);
     }
 

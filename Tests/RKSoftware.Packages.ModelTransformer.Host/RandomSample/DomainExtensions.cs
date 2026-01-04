@@ -69,8 +69,8 @@ public static partial class DomainExtensions
         return source.WithoutDefaultMapping;
     }
 
-    private static partial string? ToDtoWithoutDefaultMapping(Domain source)
-    {
-        return source.WithoutDefaultMapping;
-    }
+    //private static partial string? ToDtoWithoutDefaultMapping(Domain source)
+    //{
+    //    return source.WithoutDefaultMapping;
+    //}
 }

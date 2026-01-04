@@ -199,4 +199,33 @@ internal static class TypeExtensions
         }
         return null;
     }
+
+    public static IEnumerable<IPropertySymbol> GetAllProperties(this ITypeSymbol type, bool includeReadOnly)
+    {
+        var seen = new HashSet<string>();
+
+        foreach (var t in type.GetBaseTypesAndThis())
+        {
+            var props = t.GetMembers()
+                               .OfType<IPropertySymbol>()
+                               .Where(p => !p.IsStatic &&
+                                            p.DeclaredAccessibility == Accessibility.Public &&
+                                            (includeReadOnly || !p.IsReadOnly));
+            foreach (var p in props)
+            {
+                if (seen.Add(p.Name))
+                {
+                    yield return p;
+                }
+            }
+        }
+    }
+
+    public static IEnumerable<ITypeSymbol> GetBaseTypesAndThis(this ITypeSymbol type)
+    {
+        for (var t = type; t != null; t = t.BaseType)
+        {
+            yield return t;
+        }
+    }
 }

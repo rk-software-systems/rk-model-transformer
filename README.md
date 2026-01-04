@@ -1,5 +1,7 @@
 # Model Transformer
-Helps to transform one model to another.
+Helps to transform one model to another. 
+It generates extension methods for source model to transform it to the target model based on the registration class decorated with the `[ModelTransformerRegistration]` attribute.
+It maps only public properties with the same name from source to target model by default. For properties that need custom mapping logic, it generates partial methods that should be implemented in another partial class.
 
 | Package									|  Information                    |
 |-------------------------------------------|--------------------------------|
@@ -121,9 +123,14 @@ namespace YourNamespace
 
 ```
 2) Create the static partial class `YourDomainExtensions` under the same namespace `YourNamespace` in another file to implement:
-- custom mapping logic for properties listed in `WithoutDefaultMapping`;
-- custom mapping logic for properties with type mismatch;
-- custom mapping logic after default mapping logic for other properties (optional).
+- custom mapping logic for properties listed in `WithoutDefaultMapping`.
+  Required. If not implemented, a compilation error will occur.
+  `CS8795. Partial method 'MyDomainExtensions.ToYourViewModelYourPropertyWithoutDefaultMapping(YourDomain)' must have an implementation part because it has accessibility modifiers.`
+- custom mapping logic for properties with type mismatch.
+  Required. If not implemented, a compilation error will occur.
+  `CS8795. Partial method 'MyDomainExtensions.ToYourViewModelYourPropertyWithTypeMismatch(YourDomain)' must have an implementation part because it has accessibility modifiers.`  
+- custom mapping logic after default mapping logic for other properties.
+  Optional. If not implemented, no compilation error will occur.
 ```csharp
 namespace YourNamespace; 
 
