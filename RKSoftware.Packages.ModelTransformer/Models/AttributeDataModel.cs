@@ -33,6 +33,10 @@ internal sealed class AttributeDataModel
 
     public FrozenSet<string> NotNullableIgnoredProperties { get; }
 
+    public FrozenSet<string> PropertiesWithoutDefaultMapping { get; }
+
+    public FrozenSet<string> IncorrectPropertiesWithoutDefaultMapping { get; }
+
     #endregion
 
     #region ctor
@@ -55,24 +59,28 @@ internal sealed class AttributeDataModel
             .First()
             .ToFrozenDictionary(x => x.Name, y => y, StringComparer.Ordinal);
 
-        var (correct, incorrect) = GetIgnoredProperties(attr, Target);
+        var (correct, incorrect) = GetIgnoredProperties(Constants.Ignored, attr, Target);
         IgnoredProperties = correct.ToFrozenSet(StringComparer.Ordinal);
         IncorrectIgnoredProperties = incorrect.ToFrozenSet(StringComparer.Ordinal);
         NotIgnoredReadonlyProperties = GetNotIgnoredReadonlyProperties(Target, IgnoredProperties);
         NotNullableIgnoredProperties = GetNotNullableIgnoredProperties(TargetProperties, IgnoredProperties);
+
+        (correct, incorrect) = GetIgnoredProperties(Constants.WithoutDefaultMapping, attr, Target);
+        PropertiesWithoutDefaultMapping = correct.ToFrozenSet(StringComparer.Ordinal);
+        IncorrectPropertiesWithoutDefaultMapping = incorrect.ToFrozenSet(StringComparer.Ordinal);
     }
 
     #endregion
 
     #region helpers
 
-    private static (HashSet<string>, HashSet<string>) GetIgnoredProperties(AttributeData attr, ITypeSymbol target)
+    private static (HashSet<string>, HashSet<string>) GetIgnoredProperties(string featureName, AttributeData attr, ITypeSymbol target)
     {
+        var namedArgument = attr.NamedArguments
+            .FirstOrDefault(x => featureName.Equals(x.Key, StringComparison.Ordinal));
+
         var correct = new HashSet<string>();
         var incorrect = new HashSet<string>();
-
-        var namedArgument = attr.NamedArguments
-            .FirstOrDefault(x => Constants.IgnoredProperties.Equals(x.Key, StringComparison.Ordinal));
 
         if (namedArgument.Value.Kind == TypedConstantKind.Array && !namedArgument.Value.Values.IsDefaultOrEmpty)
         {

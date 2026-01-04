@@ -58,4 +58,19 @@ public static partial class DomainExtensions
     {
         return string.Empty;
     }
+
+    private static partial string? ToRecordModelWithoutDefaultMapping(Domain source)
+    {
+        return source.WithoutDefaultMapping; 
+    }
+
+    private static partial string? ToViewModelWithoutDefaultMapping(Domain source)
+    {
+        return source.WithoutDefaultMapping;
+    }
+
+    private static partial string? ToDtoWithoutDefaultMapping(Domain source)
+    {
+        return source.WithoutDefaultMapping;
+    }
 }

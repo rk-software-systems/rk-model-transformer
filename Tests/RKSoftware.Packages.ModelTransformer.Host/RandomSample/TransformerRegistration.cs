@@ -4,15 +4,21 @@ namespace RKSoftware.Packages.ModelTransformer.Host.RandomSample;
 
 [ModelTransformerRegistration<DomainChild, ViewModelChild>]
 [ModelTransformerRegistration<Domain, RecordModel>(
-    IgnoredProperties = [nameof(ViewModel.StringIgnored), nameof(ViewModel.IntIgnored), nameof(ViewModel.StringReadonly)])]
+    Ignored = [nameof(ViewModel.StringIgnored), nameof(ViewModel.IntIgnored), nameof(ViewModel.StringReadonly)],
+    WithoutDefaultMapping = [nameof(ViewModel.WithoutDefaultMapping)]
+)]
 [ModelTransformerRegistration<Domain, Dto>(
-    IgnoredProperties = [nameof(ViewModel.StringIgnored), nameof(ViewModel.IntIgnored), nameof(ViewModel.StringReadonly)])]
+    Ignored = [nameof(ViewModel.StringIgnored), nameof(ViewModel.IntIgnored), nameof(ViewModel.StringReadonly)],
+    WithoutDefaultMapping = [nameof(ViewModel.WithoutDefaultMapping)]
+)]
 [ModelTransformerRegistration<Domain, ViewModel>(
-    IgnoredProperties = [
+    Ignored = [
         nameof(ViewModel.StringIgnored), 
         nameof(ViewModel.IntIgnored), 
         nameof(ViewModel.StringReadonly)
-    ])]
+    ],
+    WithoutDefaultMapping = [nameof(ViewModel.WithoutDefaultMapping)]
+)]
 public class TransformerRegistration
 {
 }

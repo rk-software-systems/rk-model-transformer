@@ -103,7 +103,7 @@ public class ModelTransformerIncrementalGenerator : IIncrementalGenerator
                     var incorrectIgnoredProperties = attr.IncorrectIgnoredProperties;
                     if (incorrectIgnoredProperties.Count > 0)
                     {
-                        context.CreateInvalidPropertyNameWarning(tr.Location, attr.Source, attr.Target, incorrectIgnoredProperties);
+                        context.CreateInvalidIgnoredPropertyNameWarning(tr.Location, attr.Source, attr.Target, incorrectIgnoredProperties);
                     }
 
                     var notIgnoredReadonlyProperties = attr.NotIgnoredReadonlyProperties;
@@ -116,6 +116,12 @@ public class ModelTransformerIncrementalGenerator : IIncrementalGenerator
                     if (notNullableIgnoredProperties.Count > 0)
                     {
                         context.CreateNotNullablePropertyCanNotBeIgnoredWarning(tr.Location, attr.Source, attr.Target, notNullableIgnoredProperties);
+                    }
+
+                    var incorrectPropertiesWithoutDefaultMapping = attr.IncorrectPropertiesWithoutDefaultMapping;
+                    if (incorrectPropertiesWithoutDefaultMapping.Count > 0)
+                    {
+                        context.CreateInvalidPropertyNameWithoutDefaultMappingWarning(tr.Location, attr.Source, attr.Target, incorrectPropertiesWithoutDefaultMapping);
                     }
 
                     extensionClassBuilder.Methods.Add(new ExtensionMethodCodeBuilder(attr, groupedBySource));

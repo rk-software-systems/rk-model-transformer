@@ -25,10 +25,11 @@ internal sealed class ExtensionMethodCodeBuilder
             IPropertySymbol? sourceProp = null;
 
             var isIgnored = attr.IgnoredProperties.TryGetValue(targetProp.Key, out _);
+            var isWithoutDefaultMapping = attr.PropertiesWithoutDefaultMapping.TryGetValue(targetProp.Key, out _);
 
             var mapping = new PropertyMappingModel(targetProp.Value, attr, isIgnored);
 
-            if (!isIgnored)
+            if (!isIgnored && !isWithoutDefaultMapping)
             {
                 if (attr.SourceProperties.TryGetValue(targetProp.Key, out sourceProp))
                 {

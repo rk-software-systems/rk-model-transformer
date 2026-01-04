@@ -21,4 +21,6 @@ public record class RecordModel(string StringRequired, int IntRequired, string N
     public int? IntToNullableInt { get; set; }
 
     public List<string>? ListOfStrings { get; set; }
+
+    public string? WithoutDefaultMapping { get; set; }
 }

@@ -3,7 +3,7 @@
 namespace RKSoftware.Packages.ModelTransformer.Host.TestSamples.PrimitiveMissedIgnored;
 
 [ModelTransformerRegistration<CompanyDomain, CompanyViewModel>(
-    IgnoredProperties = new[] {
+    Ignored = new[] {
         nameof(CompanyViewModel.PrincipalName), 
         nameof(CompanyViewModel.ProjectCount)
     }

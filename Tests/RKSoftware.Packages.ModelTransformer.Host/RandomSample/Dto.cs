@@ -25,4 +25,6 @@ public class Dto
     public int? IntToNullableInt { get; set; }
 
     public List<string>? ListOfStrings { get; set; }
+
+    public string? WithoutDefaultMapping { get; set; }
 }

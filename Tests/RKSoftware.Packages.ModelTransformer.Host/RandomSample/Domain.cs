@@ -29,4 +29,6 @@ public class Domain
     public DomainChild? Child { get; set; }
 
     public List<DomainChild>? Children { get; set; }
+
+    public string? WithoutDefaultMapping { get; set; }
 }

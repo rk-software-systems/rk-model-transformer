@@ -16,7 +16,15 @@ namespace {Namespace}
     [System.AttributeUsage(System.AttributeTargets.Class, AllowMultiple=true)]
     public sealed class {GenericName} () : System.Attribute where T1 : class where T2 : class
     {{
-        public string[]? {Constants.IgnoredProperties} {{ get; set; }}
+        /// <summary>
+        /// The collection of property names to be ignored during the transformation. 
+        /// </summary>
+        public string[]? {Constants.Ignored} {{ get; init; }}
+
+        /// <summary>
+        /// The collection of property names to be excluded from default mapping during the transformation.
+        /// </summary>
+        public string[]? {Constants.WithoutDefaultMapping} {{ get; init; }}
     }}
 }}";
 }

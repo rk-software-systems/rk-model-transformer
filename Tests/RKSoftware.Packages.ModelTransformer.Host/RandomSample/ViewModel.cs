@@ -37,4 +37,6 @@ public class ViewModel
     public ViewModelChild? Child { get; set; }
 
     public List<ViewModelChild>? Children { get; set; }
+
+    public string? WithoutDefaultMapping { get; set; }
 }

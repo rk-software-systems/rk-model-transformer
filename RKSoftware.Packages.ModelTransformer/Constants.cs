@@ -11,5 +11,6 @@ internal static class Constants
     public static readonly string Indent____5 = new('\t', 5);
 
     public const string Default = "default";
-    public const string IgnoredProperties = "IgnoredProperties";
+    public const string Ignored = "Ignored";
+    public const string WithoutDefaultMapping = "WithoutDefaultMapping";
 }
