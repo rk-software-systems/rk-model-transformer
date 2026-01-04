@@ -24,20 +24,20 @@ jobs:
         run: dotnet build --configuration Release --no-restore -warnaserror
 
       - name: Run unit tests
-        run: dotnet test ./Tests/RKSoftware.Packages.ModelTransformer.Host.Tests/RKSoftware.Packages.ModelTransformer.Host.Tests.csproj --configuration Release --no-build --logger "trx;LogFileName=test-results.trx"
+        run: dotnet test ./Tests/RKSoftware.Packages.ModelTransformer.Host.Tests/RKSoftware.Packages.ModelTransformer.Host.Tests.csproj --configuration Release --no-build --logger "trx;LogFileName=test-results.trx" --results-directory ./test-results
 
       - name: Convert TRX → JUnit
         run: |
           ls
           dotnet tool install --global trx2junit || true
           export PATH="$PATH:$HOME/.dotnet/tools"
-          trx2junit test-results.trx 
+          trx2junit --output test-results ./test-results/test-results.trx 
 
       - name: Publish test results to GitHub (Checks / Test Reporting)
         uses: dorny/test-reporter@v1
         with:
           name: Unit tests
-          path: test-results.xml
+          path: ./test-results/test-results.xml
           reporter: junit
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -46,8 +46,8 @@ jobs:
         with:
           name: test-artifacts
           path: |
-            test-results.trx
-            test-results.xml
+            ./test-results/test-results.trx
+            ./test-results/test-results.xml
 
       - name: Pack NuGet package
         run: dotnet pack ./RKSoftware.Packages.ModelTransformer/RKSoftware.Packages.ModelTransformer.csproj --configuration Release --no-build -o ./artifacts
