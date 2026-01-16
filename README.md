@@ -170,7 +170,7 @@ public static partial class YourDomainExtensions
 ## Mapping table
 There are several types of mappings supported automatically in `..Default` method:
 
-<table>
+<table style="font-size:10px">
   <thead>
     <tr><th>Type</th><th></th><th>From → To</th><th></th><th>Description</th></tr>
   </thead>
