@@ -169,6 +169,7 @@ public static partial class YourDomainExtensions
 
 ## Mapping table
 There are several types of mappings supported automatically in `..Default` method:
+
 <table>
 	<tr>
 		<th>Type</th>
@@ -178,7 +179,7 @@ There are several types of mappings supported automatically in `..Default` metho
 		<th>Description</th>
 	</tr>
 	<tr>
-	<td rowspan="4">Primitive (or Structure)</td>
+		<td rowspan="4">Primitive (or Structure)</td>
 		<td>
 			Not nullable to nullable
 		</td>   
