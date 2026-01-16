@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using RKSoftware.Packages.ModelTransformer.Extensions;
 using RKSoftware.Packages.ModelTransformer.Models;
 
@@ -12,7 +13,7 @@ internal sealed class ExtensionMethodCodeBuilder
 
     private readonly List<PropertyMappingCodeBuilder> _properties;
 
-    public ExtensionMethodCodeBuilder(AttributeDataModel attr, Dictionary<string, List<AttributeDataModel>> typeRegistrations)
+    public ExtensionMethodCodeBuilder(AttributeDataModel attr, Dictionary<string, List<AttributeDataModel>> typeRegistrations, Compilation compilation)
     {
         _attr = attr;
         _typeRegistrations = typeRegistrations;
@@ -34,7 +35,7 @@ internal sealed class ExtensionMethodCodeBuilder
                 if (attr.SourceProperties.TryGetValue(targetProp.Key, out sourceProp))
                 {
                     // Type Mapping
-                    if (sourceProp.CanNotConvertType(targetProp.Value))
+                    if (sourceProp.CanNotConvertType(targetProp.Value, compilation))
                     {
                         // Complex Type Mapping
                         if (_typeRegistrations.TryGetValue(sourceProp.Type.OriginalDefinition.ToDisplayString(), out var complexTargets) &&
@@ -85,8 +86,8 @@ internal sealed class ExtensionMethodCodeBuilder
                                 }
                                 // Primitive type collection mapping
                                 else if ((sourceArgumentType.IsPrimitiveOrString() || sourceArgumentType.IsStructure()) &&
-                                         (targetArgumentType.IsPrimitiveOrString() || targetArgumentType.IsStructure()) &&
-                                        SymbolEqualityComparer.Default.Equals(sourceArgumentType.GetNonNullable(), targetArgumentType.GetNonNullable()))
+                                         (targetArgumentType.IsPrimitiveOrString() || targetArgumentType.IsStructure() || targetArgumentType.GetNonNullable().IsObject()) &&
+                                          compilation.ClassifyConversion(sourceArgumentType, targetArgumentType).IsImplicit)
                                 {
                                     if (mapping.PropertyType.IsGenericInterfaceConstructable() ||
                                         mapping.PropertyType.IsArrayType())

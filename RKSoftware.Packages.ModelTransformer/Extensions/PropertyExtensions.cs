@@ -1,26 +1,30 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace RKSoftware.Packages.ModelTransformer.Extensions;
 
 internal static class PropertyExtensions
 {
-    public static bool CanNotConvertType(this IPropertySymbol source, IPropertySymbol target)
+    public static bool CanNotConvertType(this IPropertySymbol source, IPropertySymbol target, Compilation compilation)
     {
-        var sourceTypeNonNullable = source.Type.GetNonNullable();
-        var targetTypeNonNullable = target.Type.GetNonNullable();
-
-        if ((sourceTypeNonNullable.IsReferenceType && sourceTypeNonNullable.SpecialType != SpecialType.System_String) ||
-            (targetTypeNonNullable.IsReferenceType && sourceTypeNonNullable.SpecialType != SpecialType.System_String) ||
-            !sourceTypeNonNullable.Equals(targetTypeNonNullable, SymbolEqualityComparer.Default))
+        // disallow nullable -> non-nullable
+        if (source.IsNullable() && !target.IsNullable())
         {
             return true;
         }
 
-        var isSourceNullable = source.IsNullable();
-        var isTargetNullable = target.IsNullable();
+        var sourceTypeNonNullable = source.Type.GetNonNullable();
+        var targetTypeNonNullable = target.Type.GetNonNullable();
 
-        // disallow conversion from nullable to non-nullable
-        return !isTargetNullable && isSourceNullable;
+        if ((sourceTypeNonNullable.IsReferenceType && sourceTypeNonNullable.SpecialType != SpecialType.System_String) ||
+            (targetTypeNonNullable.IsReferenceType && targetTypeNonNullable.SpecialType != SpecialType.System_String && targetTypeNonNullable.SpecialType != SpecialType.System_Object))
+        {
+            return true;
+        }
+
+        var conversion = compilation.ClassifyConversion(sourceTypeNonNullable, targetTypeNonNullable);
+
+        return !conversion.IsImplicit;
     }
 
     public static bool IsNullable(this IPropertySymbol prop)

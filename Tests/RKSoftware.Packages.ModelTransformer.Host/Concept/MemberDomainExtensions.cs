@@ -65,35 +65,30 @@ public static partial class MemberDomainExtensions
 
     private static long ToViewModelMemberIdDefault(MemberDomain source)
     {
-        ArgumentNullException.ThrowIfNull(source, nameof(source));
         return source.MemberId;
     }
     static partial void ToViewModelMemberId(MemberDomain source, ref long memberId);
 
     private static string ToViewModelUserNameDefault(MemberDomain source)
     {
-        ArgumentNullException.ThrowIfNull(source, nameof(source));
         return source.UserName;
     }
     static partial void ToViewModelUserName(MemberDomain source, ref string userName);
 
     private static AddressViewModel? ToViewModelAddressDefault(MemberDomain source)
     {
-        ArgumentNullException.ThrowIfNull(source, nameof(source));
         return source.Address?.Transform();
     }
     static partial void ToViewModelAddress(MemberDomain source, ref AddressViewModel? address);
 
     private static Collection<AddressViewModel?>? ToViewModelAddressesDefault(MemberDomain source)
     {
-        ArgumentNullException.ThrowIfNull(source, nameof(source));
         return source.Addresses != null ? new(source.Addresses.Select(x => x?.Transform()).ToList()) : default;
     }
     static partial void ToViewModelAddresses(MemberDomain source, ref Collection<AddressViewModel?>? address);
 
     private static string ToViewModelFirstNameDefault(MemberDomain source)
     {
-        ArgumentNullException.ThrowIfNull(source, nameof(source));
         return source.FirstName ?? string.Empty; // Example of custom default handling
     }
     static partial void ToViewModelFirstName(MemberDomain source, ref string firstName);
@@ -150,14 +145,12 @@ public static partial class MemberDomainExtensions
 
     private static long ToDtoMemberIdDefault(MemberDomain source)
     {
-        ArgumentNullException.ThrowIfNull(source, nameof(source));
         return source.MemberId;
     }
     static partial void ToDtoMemberId(MemberDomain source, ref long memberId);
 
     private static string ToDtoUserNameDefault(MemberDomain source)
     {
-        ArgumentNullException.ThrowIfNull(source, nameof(source));
         return source.UserName;
     }
     static partial void ToDtoUserName(MemberDomain source, ref string userName);

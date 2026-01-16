@@ -178,6 +178,11 @@ internal static class TypeExtensions
         return type.TypeKind == TypeKind.Struct;
     }
 
+    public static bool IsObject(this ITypeSymbol type)
+    {
+        return type.SpecialType == SpecialType.System_Object;
+    }
+
     public static ITypeSymbol? GetEnumerableParameterInConstructor(this ITypeSymbol type)
     {
         if (type is INamedTypeSymbol namedType && namedType.IsGenericType)

@@ -26,7 +26,6 @@ public static partial class AddressDomainExtensions
 
     private static string ToViewModelStreetDefault(AddressDomain source)
     {
-        ArgumentNullException.ThrowIfNull(source, nameof(source));
         return source.Street;
     }
     static partial void ToViewModelStreet(AddressDomain source, ref string street);

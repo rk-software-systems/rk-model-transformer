@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Collections.Immutable;
+using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
@@ -39,8 +40,18 @@ public class ModelTransformerIncrementalGenerator : IIncrementalGenerator
                 transform: static (ctx, _) => GetSemanticTargetForGeneration(ctx)) // select classes with the marker attribute and extract details
             .Where(static m => m != null); // Filter out errors that we don't care about
 
-        // Generate source code for each class found
-        context.RegisterSourceOutput(classesToGenerate, static (spc, res) => Execute(spc, res));
+        // collect the values into a single IncrementalValueProvider<ImmutableArray<RegistrationModel?>>
+        var collected = classesToGenerate.Collect();
+
+        // combine with compilation so Execute receives Compilation too
+        var compilationAndClasses = context.CompilationProvider.Combine(collected);
+
+        // Generate source code for each class found (process the collected array)
+        context.RegisterSourceOutput(compilationAndClasses, static (spc, item) =>
+        {
+            var (compilation, registrations) = item;
+            Execute(spc, compilation, registrations);
+        });
     }
 
     private static bool IsSyntaxTargetForGeneration(SyntaxNode node)
@@ -85,53 +96,62 @@ public class ModelTransformerIncrementalGenerator : IIncrementalGenerator
         return null;
     }
 
-    private static void Execute(SourceProductionContext context, RegistrationModel? tr)
+    private static void Execute(SourceProductionContext context, Compilation compilation, ImmutableArray<RegistrationModel?> registrations)
     {
-        if (tr != null)
+        if (registrations.IsDefaultOrEmpty)
         {
-            var groupedBySource = tr.Attributes
-                .GroupBy(a =>  a.Key)
-                .ToDictionary(x => x.Key, y => y.ToList());
+            return;
+        }
 
-            foreach (var group in groupedBySource)
+        foreach (var tr in registrations)
+        {
+
+            if (tr != null)
             {
-                var sourceName = group.Value.First().ClassName;
-                var extensionClassBuilder = new ExtensionClassCodeBuilder(tr.HostNamespace, sourceName, new List<ExtensionMethodCodeBuilder>(group.Value.Count));
+                var groupedBySource = tr.Attributes
+                    .GroupBy(a => a.Key)
+                    .ToDictionary(x => x.Key, y => y.ToList());
 
-                foreach (var attr in group.Value)
+                foreach (var group in groupedBySource)
                 {
-                    var incorrectIgnoredProperties = attr.IncorrectIgnoredProperties;
-                    if (incorrectIgnoredProperties.Count > 0)
+                    var sourceName = group.Value.First().ClassName;
+                    var extensionClassBuilder = new ExtensionClassCodeBuilder(tr.HostNamespace, sourceName, new List<ExtensionMethodCodeBuilder>(group.Value.Count));
+
+                    foreach (var attr in group.Value)
                     {
-                        context.CreateInvalidIgnoredPropertyNameWarning(tr.Location, attr.Source, attr.Target, incorrectIgnoredProperties);
+                        var incorrectIgnoredProperties = attr.IncorrectIgnoredProperties;
+                        if (incorrectIgnoredProperties.Count > 0)
+                        {
+                            context.CreateInvalidIgnoredPropertyNameWarning(tr.Location, attr.Source, attr.Target, incorrectIgnoredProperties);
+                        }
+
+                        var notIgnoredReadonlyProperties = attr.NotIgnoredReadonlyProperties;
+                        if (notIgnoredReadonlyProperties.Count > 0)
+                        {
+                            context.CreateReadonlyPropertyMustBeIgnoredWarning(tr.Location, attr.Source, attr.Target, notIgnoredReadonlyProperties);
+                        }
+
+                        var notNullableIgnoredProperties = attr.NotNullableIgnoredProperties;
+                        if (notNullableIgnoredProperties.Count > 0)
+                        {
+                            context.CreateNotNullablePropertyCanNotBeIgnoredWarning(tr.Location, attr.Source, attr.Target, notNullableIgnoredProperties);
+                        }
+
+                        var incorrectPropertiesWithoutDefaultMapping = attr.IncorrectPropertiesWithoutDefaultMapping;
+                        if (incorrectPropertiesWithoutDefaultMapping.Count > 0)
+                        {
+                            context.CreateInvalidPropertyNameWithoutDefaultMappingWarning(tr.Location, attr.Source, attr.Target, incorrectPropertiesWithoutDefaultMapping);
+                        }
+
+                        extensionClassBuilder.Methods.Add(new ExtensionMethodCodeBuilder(attr, groupedBySource, compilation));
                     }
 
-                    var notIgnoredReadonlyProperties = attr.NotIgnoredReadonlyProperties;
-                    if (notIgnoredReadonlyProperties.Count > 0)
-                    {
-                        context.CreateReadonlyPropertyMustBeIgnoredWarning(tr.Location, attr.Source, attr.Target, notIgnoredReadonlyProperties);
-                    }
+                    var extensionClassCode = extensionClassBuilder.Generate();
 
-                    var notNullableIgnoredProperties = attr.NotNullableIgnoredProperties;
-                    if (notNullableIgnoredProperties.Count > 0)
-                    {
-                        context.CreateNotNullablePropertyCanNotBeIgnoredWarning(tr.Location, attr.Source, attr.Target, notNullableIgnoredProperties);
-                    }
+                    var fileName = $"{tr.HostNamespace}.{sourceName}.g.cs";
 
-                    var incorrectPropertiesWithoutDefaultMapping = attr.IncorrectPropertiesWithoutDefaultMapping;
-                    if (incorrectPropertiesWithoutDefaultMapping.Count > 0)
-                    {
-                        context.CreateInvalidPropertyNameWithoutDefaultMappingWarning(tr.Location, attr.Source, attr.Target, incorrectPropertiesWithoutDefaultMapping);
-                    }
-
-                    extensionClassBuilder.Methods.Add(new ExtensionMethodCodeBuilder(attr, groupedBySource));
+                    context.AddSource(fileName, SourceText.From(extensionClassCode, Encoding.UTF8));
                 }
-
-                var extensionClassCode = extensionClassBuilder.Generate();
-
-                var fileName = $"{tr.HostNamespace}.{sourceName}.g.cs";
-
-                context.AddSource(fileName, SourceText.From(extensionClassCode, Encoding.UTF8));
             }
         }
     }

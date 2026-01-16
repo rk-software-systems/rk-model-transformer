@@ -2,14 +2,26 @@
 
 public static class DepartmentDomainExtensions
 {
-    public static DepartmentViewModel Transform(this DepartmentDomain domain)
+    public static DepartmentViewModel Transform(this DepartmentDomain domain, DepartmentViewModel? target = null)
     {
         ArgumentNullException.ThrowIfNull(domain, nameof(domain));
 
-        return new DepartmentViewModel
+        if (target == null)
         {
-            Id = domain.Id,
-            Name = domain.Name
-        };
+            target = new DepartmentViewModel
+            {
+                Id = domain.Id,
+                Name = domain.Name
+            };
+        }
+        else
+        {
+            target.Id = domain.Id;
+            target.Name = domain.Name;
+
+
+        }
+
+        return target;
     }
 }

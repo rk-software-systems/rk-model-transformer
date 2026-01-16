@@ -30,7 +30,7 @@ public struct IndustryModel : IEquatable<IndustryModel>
         return !(left == right);
     }
 
-    public bool Equals(IndustryModel other)
+    public readonly bool Equals(IndustryModel other)
     {
         return Id == other.Id;
     }
