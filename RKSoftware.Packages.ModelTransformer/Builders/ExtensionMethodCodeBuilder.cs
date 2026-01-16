@@ -96,9 +96,10 @@ internal sealed class ExtensionMethodCodeBuilder
                                     }
                                     else if (mapping.PropertyType.GetEnumerableParameterInConstructor() is INamedTypeSymbol nt)
                                     {      
-                                        if (!sourceArgumentType.IsNullable() && targetArgumentType.IsNullable())
+                                        if ((!sourceArgumentType.IsNullable() && targetArgumentType.IsNullable()) ||
+                                            !SymbolEqualityComparer.Default.Equals(sourceArgumentType.GetNonNullable(), targetArgumentType.GetNonNullable()))
                                         {
-                                            str = propBuilder.GetCastCollectionTypeCode(sourceProp, targetArgumentType);
+                                            str = propBuilder.GetImplicitConvertCollectionTypeCode(sourceProp, targetArgumentType);
                                             if (nt.IsEnumerableInterface())
                                             {
                                             }

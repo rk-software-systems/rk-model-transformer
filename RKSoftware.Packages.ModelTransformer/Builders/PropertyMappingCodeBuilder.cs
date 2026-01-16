@@ -130,8 +130,8 @@ $"source.{sourceProp.Name}.Select(x => x{(showsNullCheck ? "?" : "")}.Transform(
         return $"source.{sourceProp.Name}";
     }
 
-    public string GetCastCollectionTypeCode(IPropertySymbol sourceProp, ITypeSymbol targetArgumentType)
+    public string GetImplicitConvertCollectionTypeCode(IPropertySymbol sourceProp, ITypeSymbol targetArgumentType)
     {
-        return $"source.{sourceProp.Name}.Cast<{targetArgumentType.ToDisplayString()}>()";
+        return $"source.{sourceProp.Name}.Select(x => ({targetArgumentType.ToDisplayString()})x)";
     }
 }

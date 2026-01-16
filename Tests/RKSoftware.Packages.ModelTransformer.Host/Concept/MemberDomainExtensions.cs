@@ -35,6 +35,9 @@ public static partial class MemberDomainExtensions
         var updatedDates = ToViewModelUpdatedDatesDefault(source);
         ToViewModelUpdatedDates(source, ref updatedDates);
 
+        var profileIds = ToViewModelProfileIdsDefault(source);
+        ToViewModelProfileIds(source, ref profileIds);
+
         if (target == null)
         {
             target = new MemberViewModel
@@ -46,7 +49,8 @@ public static partial class MemberDomainExtensions
                 FirstName = firstName,
                 Departments = departments,
                 Scores = scores,
-                UpdatedDates = updatedDates
+                UpdatedDates = updatedDates,
+                ProfileIds = profileIds
             };
         } 
         else
@@ -58,6 +62,7 @@ public static partial class MemberDomainExtensions
             target.Departments = departments;
             target.Scores = scores;
             target.UpdatedDates = updatedDates;
+            target.ProfileIds = profileIds;
         }
 
         return target;
@@ -111,6 +116,12 @@ public static partial class MemberDomainExtensions
         return source.UpdatedDates != null ? [.. source.UpdatedDates] : default;
     }
     static partial void ToViewModelUpdatedDates(MemberDomain source, ref IList<DateTime>? target);
+
+    private static List<int?>? ToViewModelProfileIdsDefault(MemberDomain source)
+    {
+        return source.ProfileIds != null ? new (source.ProfileIds.Select(x => (int?)x)) : default;
+    }
+    static partial void ToViewModelProfileIds(MemberDomain source, ref List<int?>? target);
     #endregion
 
     #region to Dto

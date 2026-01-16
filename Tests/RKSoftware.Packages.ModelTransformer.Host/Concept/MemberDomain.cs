@@ -21,4 +21,6 @@ public class MemberDomain
 #pragma warning restore CA1819 // Properties should not return arrays
 
     public IList<DateTime>? UpdatedDates { get; set; }
+
+    public List<int>? ProfileIds { get; set; }
 }
