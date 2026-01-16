@@ -170,22 +170,22 @@ public static partial class YourDomainExtensions
 ## Mapping table
 There are several types of mappings supported automatically in `..Default` method:
 
-<table style="font-size:10px">
+<table>
   <thead>
-    <tr><th>Type</th><th></th><th>From → To</th><th></th><th>Description</th></tr>
+    <tr><th>Type</th><th>From → To</th><th></th></tr>
   </thead>
   <tbody>
-    <tr><td rowspan="4">Primitive (or Structure)</td><td>Not nullable to nullable</td><td>int → int?</td><td>✅</td><td></td></tr>
-    <tr><td>Implicit</td><td>int → long</td><td>✅</td><td></td></tr>
-    <tr><td>Nullable to not nullable</td><td>int? → int</td><td>❌</td><td></td></tr>
-    <tr><td>Explicit</td><td>long → int</td><td>❌</td><td></td></tr>
-    <tr><td rowspan="2">Class</td><td>Not nullable to nullable</td><td>YourDomain → YourViewModel?</td><td>✅</td><td></td></tr>
-    <tr><td>Nullable to not nullable</td><td>YourDomain? → YourViewModel</td><td>❌</td><td></td></tr>
-    <tr><td rowspan="4">Primitive (or Structure) generic type parameter in generic enumerables</td><td>Not nullable to nullable</td><td>ICollection&lt;int&gt; → ICollection&lt;int?&gt;</td><td>✅</td><td></td></tr>
-    <tr><td>Implicit</td><td>ICollection&lt;int&gt; → ICollection&lt;long&gt;</td><td>✅</td><td></td></tr>
-    <tr><td>Nullable to not nullable</td><td>ICollection&lt;int?&gt; → ICollection&lt;int&gt;</td><td>❌</td><td></td></tr>
-    <tr><td>Explicit</td><td>ICollection&lt;long&gt; → ICollection&lt;int&gt;</td><td>❌</td><td></td></tr>
-    <tr><td rowspan="2">Class generic type parameter in generic enumerables, if registration YourDomain → YourViewModel exists</td><td>Not nullable to nullable</td><td>ICollection&lt;YourDomain&gt; → ICollection&lt;YourViewModel?&gt;</td><td>✅</td><td></td></tr>
-    <tr><td>Nullable to not nullable</td><td>ICollection&lt;YourDomain?&gt; → ICollection&lt;YourViewModel&gt;</td><td>❌</td><td></td></tr>
+    <tr><td rowspan="4">Primitive (or Structure)</td><td>int → int?</td><td>✅</td></tr>
+    <tr><td>int → long</td><td>✅</td></tr>
+    <tr><td>int? → int</td><td>❌</td></tr>
+    <tr><td>long → int</td><td>❌</td></tr>
+    <tr><td rowspan="2">Class</td><td>YourDomain → YourViewModel?</td><td>✅</td></tr>
+    <tr><td>YourDomain? → YourViewModel</td><td>❌</td></tr>
+    <tr><td rowspan="4">Primitive (or Structure) generic type parameter in generic enumerables</td><td>ICollection&lt;int&gt; → ICollection&lt;int?&gt;</td><td>✅</td></tr>
+    <tr><td>ICollection&lt;int&gt; → ICollection&lt;long&gt;</td><td>✅</td></tr>
+    <tr><td>ICollection&lt;int?&gt; → ICollection&lt;int&gt;</td><td>❌</td></tr>
+    <tr><td>ICollection&lt;long&gt; → ICollection&lt;int&gt;</td><td>❌</td></tr>
+    <tr><td rowspan="2">Class generic type parameter in generic enumerables, if registration YourDomain → YourViewModel exists</td><td>ICollection&lt;YourDomain&gt; → ICollection&lt;YourViewModel?&gt;</td><td>✅</td></tr>
+    <tr><td>ICollection&lt;YourDomain?&gt; → ICollection&lt;YourViewModel&gt;</td><td>❌</td></tr>
   </tbody>
 </table>
