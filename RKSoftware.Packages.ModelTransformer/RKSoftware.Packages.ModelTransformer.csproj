@@ -22,6 +22,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
+    <NoWarn>NU1603</NoWarn>
     <Company>RK Software Systems</Company>
     <Description>Helps to transform one model to another.</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
