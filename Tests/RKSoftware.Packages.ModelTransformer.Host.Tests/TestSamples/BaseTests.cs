@@ -53,4 +53,78 @@ public class BaseTests
         Assert.Equal(_description, viewModel.Description);
         Assert.Equal(_establishedYear, viewModel.EstablishedYear);
     }
+
+    [Fact]
+    public void TestCreateViewModelListFromDomainList()
+    {
+        var domains = new List<CompanyDomain>
+        {
+            new ()
+            {
+                Id = _id,
+                Description = _description,
+                EstablishedYear = _establishedYear
+            },
+            new ()
+            {
+                Id = 2,
+                Description = "Another Company",
+                EstablishedYear = 2000
+            }
+        };
+
+        var viewModels = domains.Transform();
+
+        Assert.NotNull(viewModels);
+        Assert.Equal(domains.Count, viewModels.Count);
+
+    }
+
+    [Fact]
+    public void TestCreateViewModelEnumerableFromDomainEnumerable()
+    {
+        var domains = new List<CompanyDomain>
+        {
+            new ()
+            {
+                Id = _id,
+                Description = _description,
+                EstablishedYear = _establishedYear
+            },
+            new ()
+            {
+                Id = 2,
+                Description = "Another Company",
+                EstablishedYear = 2000
+            }
+        };
+
+        var viewModels = domains.Select(x => x).Transform();
+        Assert.NotNull(viewModels);
+        Assert.Equal(domains.Count, viewModels.Count());
+    }
+
+    [Fact]
+    public void TestCreateViewModelCollectionFromDomainCollection()
+    {
+        ICollection<CompanyDomain> domains =
+        [
+            new ()
+            {
+                Id = _id,
+                Description = _description,
+                EstablishedYear = _establishedYear
+            },
+            new ()
+            {
+                Id = 2,
+                Description = "Another Company",
+                EstablishedYear = 2000
+            }
+        ];
+
+        var viewModels = domains.Transform();
+        Assert.NotNull(viewModels);
+        Assert.Equal(domains.Count, viewModels.Count);
+    }
 }
