@@ -250,6 +250,20 @@ internal sealed class ExtensionMethodCodeBuilder
 {Constants.Indent_2}}}
 
 {Constants.Indent_2}/// <summary>
+{Constants.Indent_2}/// Transforms a list of <b>{sourceName}</b> to a list of <b>{targetName}</b>.
+{Constants.Indent_2}/// </summary>
+{Constants.Indent_2}/// <param name=""source""></param>
+{Constants.Indent_2}/// <param name=""target"">It is used to help with type inference in collection mappings. It is not used inside the method. It must be <b>({targetName}?)null</b> every time.</param>
+{Constants.Indent_2}public static System.Collections.Generic.List<{targetTypeName}> Transform (this System.Collections.Generic.List<{sourceTypeName}> source, {targetTypeName}? target = null)
+{Constants.Indent_2}{{
+{Constants.Indent__3}if (source == null) 
+{Constants.Indent__3}{{
+{Constants.Indent___4}throw new System.ArgumentNullException(nameof(source));
+{Constants.Indent__3}}}
+{Constants.Indent__3}return [.. source.Select(item => item.Transform(({targetTypeName}?)null))];
+{Constants.Indent_2}}}
+
+{Constants.Indent_2}/// <summary>
 {Constants.Indent_2}/// Transforms an enumerable collection of <b>{sourceName}</b> to an enumerable collection of <b>{targetName}</b>.
 {Constants.Indent_2}/// </summary>
 {Constants.Indent_2}/// <param name=""source""></param>

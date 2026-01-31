@@ -73,7 +73,33 @@ public class BaseTests
             }
         };
 
-        var viewModels = domains.Transform();
+        List<CompanyViewModel> viewModels = domains.Transform();
+
+        Assert.NotNull(viewModels);
+        Assert.Equal(domains.Count, viewModels.Count);
+
+    }
+
+    [Fact]
+    public void TestCreateViewModelIListFromDomainIList()
+    {
+        IList<CompanyDomain> domains =
+        [
+            new ()
+            {
+                Id = _id,
+                Description = _description,
+                EstablishedYear = _establishedYear
+            },
+            new ()
+            {
+                Id = 2,
+                Description = "Another Company",
+                EstablishedYear = 2000
+            }
+        ];
+
+        IList<CompanyViewModel> viewModels = domains.Transform();
 
         Assert.NotNull(viewModels);
         Assert.Equal(domains.Count, viewModels.Count);
@@ -99,7 +125,8 @@ public class BaseTests
             }
         };
 
-        var viewModels = domains.Select(x => x).Transform();
+        IEnumerable<CompanyViewModel> viewModels = domains.Select(x => x).Transform();
+
         Assert.NotNull(viewModels);
         Assert.Equal(domains.Count, viewModels.Count());
     }
@@ -123,7 +150,7 @@ public class BaseTests
             }
         ];
 
-        var viewModels = domains.Transform();
+        ICollection<CompanyViewModel> viewModels = domains.Transform();
         Assert.NotNull(viewModels);
         Assert.Equal(domains.Count, viewModels.Count);
     }
