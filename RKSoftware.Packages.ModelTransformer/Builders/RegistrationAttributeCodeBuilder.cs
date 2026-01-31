@@ -14,7 +14,7 @@ internal sealed class RegistrationAttributeCodeBuilder
 namespace {Namespace}
 {{
     [System.AttributeUsage(System.AttributeTargets.Class, AllowMultiple=true)]
-    public sealed class {GenericName} () : System.Attribute where T1 : class where T2 : class
+    internal sealed class {GenericName} () : System.Attribute where T1 : class where T2 : class
     {{
         /// <summary>
         /// The collection of property names to be ignored during the transformation. 
