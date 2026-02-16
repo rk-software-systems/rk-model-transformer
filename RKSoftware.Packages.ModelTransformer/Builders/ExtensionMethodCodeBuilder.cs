@@ -213,7 +213,7 @@ internal sealed class ExtensionMethodCodeBuilder
 {Constants.Indent_2}/// </summary>
 {Constants.Indent_2}/// <param name=""source""></param>
 {Constants.Indent_2}/// <param name=""target""></param>
-{Constants.Indent_2}public static {targetTypeName} Transform (this {sourceTypeName} source, {targetTypeName}? target = null)
+{Constants.Indent_2}{_attr.MethodAccessor} static {targetTypeName} Transform (this {sourceTypeName} source, {targetTypeName}? target = null)
 {Constants.Indent_2}{{
 {Constants.Indent__3}if (source == null) 
 {Constants.Indent__3}{{
@@ -240,7 +240,7 @@ internal sealed class ExtensionMethodCodeBuilder
 {Constants.Indent_2}/// </summary>
 {Constants.Indent_2}/// <param name=""source""></param>
 {Constants.Indent_2}/// <param name=""target"">It is used to help with type inference in collection mappings. It is not used inside the method. It must be <b>({targetName}?)null</b> every time.</param>
-{Constants.Indent_2}public static System.Collections.Generic.IList<{targetTypeName}> Transform (this System.Collections.Generic.IList<{sourceTypeName}> source, {targetTypeName}? target = null)
+{Constants.Indent_2}{_attr.MethodAccessor} static System.Collections.Generic.IList<{targetTypeName}> Transform (this System.Collections.Generic.IList<{sourceTypeName}> source, {targetTypeName}? target = null)
 {Constants.Indent_2}{{
 {Constants.Indent__3}if (source == null) 
 {Constants.Indent__3}{{
@@ -254,7 +254,7 @@ internal sealed class ExtensionMethodCodeBuilder
 {Constants.Indent_2}/// </summary>
 {Constants.Indent_2}/// <param name=""source""></param>
 {Constants.Indent_2}/// <param name=""target"">It is used to help with type inference in collection mappings. It is not used inside the method. It must be <b>({targetName}?)null</b> every time.</param>
-{Constants.Indent_2}public static System.Collections.Generic.List<{targetTypeName}> Transform (this System.Collections.Generic.List<{sourceTypeName}> source, {targetTypeName}? target = null)
+{Constants.Indent_2}{_attr.MethodAccessor} static System.Collections.Generic.List<{targetTypeName}> Transform (this System.Collections.Generic.List<{sourceTypeName}> source, {targetTypeName}? target = null)
 {Constants.Indent_2}{{
 {Constants.Indent__3}if (source == null) 
 {Constants.Indent__3}{{
@@ -268,7 +268,7 @@ internal sealed class ExtensionMethodCodeBuilder
 {Constants.Indent_2}/// </summary>
 {Constants.Indent_2}/// <param name=""source""></param>
 {Constants.Indent_2}/// <param name=""target"">It is used to help with type inference in collection mappings. It is not used inside the method. It must be <b>({targetName}?)null</b> every time.</param>
-{Constants.Indent_2}public static System.Collections.Generic.IEnumerable<{targetTypeName}> Transform (this System.Collections.Generic.IEnumerable<{sourceTypeName}> source, {targetTypeName}? target = null)
+{Constants.Indent_2}{_attr.MethodAccessor} static System.Collections.Generic.IEnumerable<{targetTypeName}> Transform (this System.Collections.Generic.IEnumerable<{sourceTypeName}> source, {targetTypeName}? target = null)
 {Constants.Indent_2}{{
 {Constants.Indent__3}if (source == null) 
 {Constants.Indent__3}{{
@@ -282,7 +282,7 @@ internal sealed class ExtensionMethodCodeBuilder
 {Constants.Indent_2}/// </summary>
 {Constants.Indent_2}/// <param name=""source""></param>
 {Constants.Indent_2}/// <param name=""target"">It is used to help with type inference in collection mappings. It is not used inside the method. It must be <b>({targetName}?)null</b> every time.</param>
-{Constants.Indent_2}public static System.Collections.Generic.ICollection<{targetTypeName}> Transform (this System.Collections.Generic.ICollection<{sourceTypeName}> source, {targetTypeName}? target = null)
+{Constants.Indent_2}{_attr.MethodAccessor} static System.Collections.Generic.ICollection<{targetTypeName}> Transform (this System.Collections.Generic.ICollection<{sourceTypeName}> source, {targetTypeName}? target = null)
 {Constants.Indent_2}{{
 {Constants.Indent__3}if (source == null) 
 {Constants.Indent__3}{{

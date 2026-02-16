@@ -13,9 +13,13 @@ internal sealed class AttributeDataModel
 
     public string ClassName { get; }
 
+    public string ClassAccessor { get; }
+
+    public string MethodAccessor { get; }
+
     public AttributeData Attribute { get; }
 
-    public ITypeSymbol Source { get; }
+    public ITypeSymbol Source { get; }   
 
     public FrozenDictionary<string, IPropertySymbol> SourceProperties { get; }
 
@@ -46,10 +50,12 @@ internal sealed class AttributeDataModel
         HostNamespace = hostNamespace;
         Attribute = attr ?? throw new ArgumentNullException(nameof(attr));
         Source = attr.AttributeClass!.TypeArguments.First();
+        ClassAccessor = GetClassAccessor(Source);
         Key = Source.OriginalDefinition.ToDisplayString();
         ClassName = $"{Source.Name}Extensions";
         SourceProperties = GetProperties(Source, true);
         Target = attr.AttributeClass!.TypeArguments.Last();
+        MethodAccessor = GetClassAccessor(Target);
         TargetProperties = GetProperties(Target, false);
         TargetConstructorParams = Target.GetMembers()
             .OfType<IMethodSymbol>()
@@ -129,6 +135,15 @@ internal sealed class AttributeDataModel
             .Where(kv => !kv.Value.IsNullable() && ignoredProperties.Contains(kv.Key))
             .Select(kv => kv.Key)
             .ToFrozenSet(StringComparer.Ordinal);
+    }
+
+    private static string GetClassAccessor(ITypeSymbol type)
+    {
+        return type.DeclaredAccessibility switch
+        {            
+            Accessibility.Internal => "internal",
+            _ => "public"
+        };
     }
     #endregion
 }

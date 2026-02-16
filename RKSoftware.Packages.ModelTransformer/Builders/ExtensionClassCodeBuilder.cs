@@ -1,12 +1,14 @@
-﻿namespace RKSoftware.Packages.ModelTransformer.Builders;
+﻿using RKSoftware.Packages.ModelTransformer.Models;
+
+namespace RKSoftware.Packages.ModelTransformer.Builders;
 
 /// <summary>
 /// 
 /// </summary>
 /// <param name="hostNamespace"></param>
-/// <param name="className"></param>
+/// <param name="data"></param>
 /// <param name="methods"></param>
-internal sealed class ExtensionClassCodeBuilder(string hostNamespace, string className, List<ExtensionMethodCodeBuilder> methods)
+internal sealed class ExtensionClassCodeBuilder(string hostNamespace, AttributeDataModel data, List<ExtensionMethodCodeBuilder> methods)
 {
     public List<ExtensionMethodCodeBuilder> Methods { get; } = methods;
 
@@ -24,7 +26,7 @@ internal sealed class ExtensionClassCodeBuilder(string hostNamespace, string cla
 
 namespace {hostNamespace}
 {{
-{Constants.Indent1}public static partial class {className}
+{Constants.Indent1}{data.ClassAccessor} static partial class {data.ClassName}
 {Constants.Indent1}{{
 {Constants.Indent_2}{methodsCode}
 {Constants.Indent1}}}    

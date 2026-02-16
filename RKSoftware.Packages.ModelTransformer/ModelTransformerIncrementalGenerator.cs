@@ -114,8 +114,8 @@ public class ModelTransformerIncrementalGenerator : IIncrementalGenerator
 
                 foreach (var group in groupedBySource)
                 {
-                    var sourceName = group.Value.First().ClassName;
-                    var extensionClassBuilder = new ExtensionClassCodeBuilder(tr.HostNamespace, sourceName, new List<ExtensionMethodCodeBuilder>(group.Value.Count));
+                    var data = group.Value.First();
+                    var extensionClassBuilder = new ExtensionClassCodeBuilder(tr.HostNamespace, data, new List<ExtensionMethodCodeBuilder>(group.Value.Count));
 
                     foreach (var attr in group.Value)
                     {
@@ -148,7 +148,7 @@ public class ModelTransformerIncrementalGenerator : IIncrementalGenerator
 
                     var extensionClassCode = extensionClassBuilder.Generate();
 
-                    var fileName = $"{tr.HostNamespace}.{sourceName}.g.cs";
+                    var fileName = $"{tr.HostNamespace}.{data.ClassName}.g.cs";
 
                     context.AddSource(fileName, SourceText.From(extensionClassCode, Encoding.UTF8));
                 }
