@@ -1,5 +1,4 @@
 ﻿using System.Collections.ObjectModel;
-using Microsoft.VisualBasic;
 
 namespace RKSoftware.Packages.ModelTransformer.Host.Concept;
 
@@ -11,8 +10,8 @@ public static partial class MemberDomainExtensions
     {
         ArgumentNullException.ThrowIfNull(source, nameof(source));
 
-        var memberId = ToViewModelMemberIdDefault(source);
-        ToViewModelMemberId(source, ref memberId);
+        var _memberId = ToViewModelMemberIdDefault(source);
+        ToViewModelMemberId(source, ref _memberId);
 
         var userName = ToViewModelUserNameDefault(source);
         ToViewModelUserName(source, ref userName);
@@ -42,7 +41,7 @@ public static partial class MemberDomainExtensions
         {
             target = new MemberViewModel
             {
-                MemberId = memberId,
+                MemberId = _memberId,
                 UserName = userName,
                 Address = address,
                 Addresses = addresses,
@@ -55,7 +54,7 @@ public static partial class MemberDomainExtensions
         } 
         else
         {
-            target.MemberId = memberId;
+            target.MemberId = _memberId;
             target.UserName = userName;
             target.Address = address;
             target.Addresses = addresses;
