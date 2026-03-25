@@ -2,6 +2,7 @@
 Helps to transform one model to another. 
 It generates extension methods for source model to transform it to the target model based on the registration class decorated with the `[ModelTransformerRegistration]` attribute.
 It maps only public properties with the same name from source to target model by default. For properties that need custom mapping logic, it generates partial methods that should be implemented in another partial class.
+Current library version is 4.x.x, it relates to the major version of [Roslyn package version](https://learn.microsoft.com/en-us/visualstudio/extensibility/roslyn-version-support). 
 
 | Package									| Version					                                                    |  Information                   | 
 |-------------------------------------------|-------------------------------------------------------------------------------|--------------------------------|
